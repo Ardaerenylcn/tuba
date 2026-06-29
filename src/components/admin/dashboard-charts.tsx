@@ -80,7 +80,7 @@ export function DashboardCharts({ monthly, programs }: Props) {
             <YAxis tick={{ fontSize: 11, fill: "var(--color-stone-400)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
             <Tooltip
               contentStyle={{ border: "1px solid var(--color-stone-200)", borderRadius: 0, fontSize: 12 }}
-              formatter={(v: number) => [`${v.toLocaleString("tr-TR")} ₺`, "Gelir"]}
+              formatter={(v) => [`${Number(v).toLocaleString("tr-TR")} ₺`, "Gelir"]}
             />
             <Area type="monotone" dataKey="gelir" stroke="#b8813a" strokeWidth={1.5} fill="url(#gelirGrad)" />
           </AreaChart>
