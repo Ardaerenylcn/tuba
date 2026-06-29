@@ -3,6 +3,8 @@ import { SiteHeader } from "@/components/storefront/site-header";
 import { SiteFooter } from "@/components/storefront/site-footer";
 import { WhatsAppButton } from "@/components/storefront/whatsapp-button";
 
+export const dynamic = "force-dynamic";
+
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
   return (
     <>
