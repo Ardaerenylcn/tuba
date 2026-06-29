@@ -1,0 +1,355 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth (Better Auth tables)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  passwordHash  String?
+  role          UserRole @default(customer)
+  isActive      Boolean  @default(true)
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions       Session[]
+  accounts       Account[]
+  reservations   Reservation[]
+  instructorSessions WorkshopSession[] @relation("InstructorSessions")
+  auditLogs      AuditLog[]
+  updatedContent SiteContent[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions")
+}
+
+model Account {
+  id            String    @id @default(cuid())
+  userId        String
+  accountId     String
+  providerId    String
+  accessToken   String?
+  refreshToken  String?
+  idToken       String?
+  expiresAt     DateTime?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("verifications")
+}
+
+// ---------------------------------------------------------------------------
+// Programs
+// ---------------------------------------------------------------------------
+
+model Program {
+  id               String        @id @default(cuid())
+  type             ProgramType
+  title            String
+  slug             String        @unique
+  shortDescription String
+  description      Json
+  coverImageId       String?
+  coverImagePosition String?     @default("center center")
+  galleryImageIds    String[]    @default([])
+  basePrice        Decimal       @db.Decimal(10, 2)
+  currency         String        @default("TRY")
+  defaultCapacity  Int?
+  durationMinutes  Int?
+  level            ProgramLevel?
+  status           ContentStatus @default(draft)
+  seoTitle         String?
+  seoDescription   String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  coverImage    Media?               @relation("ProgramCover", fields: [coverImageId], references: [id])
+  requirements  ProgramRequirement[]
+  faqs          ProgramFaq[]
+  sessions      WorkshopSession[]
+
+  @@map("programs")
+}
+
+model ProgramRequirement {
+  id          String   @id @default(cuid())
+  programId   String
+  title       String
+  description Json?
+  sortOrder   Int      @default(0)
+
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@map("program_requirements")
+}
+
+model ProgramFaq {
+  id        String   @id @default(cuid())
+  programId String
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@map("program_faqs")
+}
+
+// ---------------------------------------------------------------------------
+// Sessions
+// ---------------------------------------------------------------------------
+
+model WorkshopSession {
+  id              String        @id @default(cuid())
+  programId       String
+  instructorId    String?
+  startAt         DateTime
+  endAt           DateTime
+  timezone        String        @default("Europe/Istanbul")
+  capacity        Int
+  priceOverride   Decimal?      @db.Decimal(10, 2)
+  status          SessionStatus @default(draft)
+  locationName    String?
+  locationAddress String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  program         Program       @relation(fields: [programId], references: [id])
+  instructor      User?         @relation("InstructorSessions", fields: [instructorId], references: [id])
+  reservations    Reservation[]
+
+  @@map("workshop_sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Reservations
+// ---------------------------------------------------------------------------
+
+model Reservation {
+  id                 String            @id @default(cuid())
+  userId             String?
+  sessionId          String
+  customerName       String
+  customerEmail      String
+  customerPhone      String
+  participantCount   Int               @default(1)
+  priceSnapshot      Decimal           @db.Decimal(10, 2)
+  currency           String            @default("TRY")
+  status             ReservationStatus @default(pending)
+  paymentStatus      PaymentStatus     @default(not_required)
+  paymentReference   String?
+  couponCode         String?
+  discountAmount     Decimal?          @db.Decimal(10, 2)
+  notes              String?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  user     User?            @relation(fields: [userId], references: [id])
+  session  WorkshopSession  @relation(fields: [sessionId], references: [id])
+  payments Payment[]
+
+  @@map("reservations")
+}
+
+// ---------------------------------------------------------------------------
+// Discount Codes
+// ---------------------------------------------------------------------------
+
+model DiscountCode {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  type           String    @default("percent") // percent | fixed
+  value          Decimal   @db.Decimal(10, 2)  // % veya ₺ tutarı
+  maxUses        Int?                           // null = sınırsız
+  usedCount      Int       @default(0)
+  minOrderAmount Decimal?  @db.Decimal(10, 2)
+  expiresAt      DateTime?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  @@map("discount_codes")
+}
+
+// ---------------------------------------------------------------------------
+// Payments
+// ---------------------------------------------------------------------------
+
+model Payment {
+  id                String        @id @default(cuid())
+  reservationId     String
+  provider          String
+  providerPaymentId String?
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("TRY")
+  status            PaymentStatus @default(pending)
+  paidAt            DateTime?
+  failureReason     String?
+  rawProviderData   Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+
+  @@map("payments")
+}
+
+// ---------------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------------
+
+model Media {
+  id          String   @id @default(cuid())
+  fileName    String
+  url         String
+  altText     String?
+  width       Int?
+  height      Int?
+  mimeType    String
+  sizeBytes   Int?
+  focalPointX Float?
+  focalPointY Float?
+  createdAt   DateTime @default(now())
+
+  programCovers Program[] @relation("ProgramCover")
+
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// Site Content
+// ---------------------------------------------------------------------------
+
+model SiteContent {
+  id        String        @id @default(cuid())
+  key       String
+  locale    String        @default("tr")
+  value     Json
+  status    ContentStatus @default(draft)
+  updatedBy String?
+  updatedAt DateTime      @updatedAt
+
+  editor User? @relation(fields: [updatedBy], references: [id])
+
+  @@unique([key, locale])
+  @@map("site_content")
+}
+
+// ---------------------------------------------------------------------------
+// Audit Logs
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  oldValue    Json?
+  newValue    Json?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  guest
+  customer
+  instructor
+  editor
+  admin
+}
+
+enum ProgramType {
+  workshop
+  certificate
+}
+
+enum ProgramLevel {
+  beginner
+  intermediate
+  advanced
+  all_levels
+}
+
+enum ContentStatus {
+  draft
+  published
+  archived
+}
+
+enum SessionStatus {
+  draft
+  published
+  full
+  cancelled
+  completed
+}
+
+enum ReservationStatus {
+  pending
+  confirmed
+  cancelled
+  refunded
+  waitlisted
+  no_show
+  completed
+}
+
+enum PaymentStatus {
+  not_required
+  pending
+  paid
+  failed
+  refunded
+  partially_refunded
+}
