@@ -26,17 +26,30 @@ const INITIAL_FORM: FormState = {
   notes: "",
 };
 
-export function ReservationForm({
-  sessionId,
-  maxParticipants,
-  pricePerPerson,
-  currency,
-}: ReservationFormProps) {
+function formatCardNumber(value: string) {
+  return value.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+}
+
+function formatExpiry(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length >= 3) return digits.slice(0, 2) + "/" + digits.slice(2);
+  return digits;
+}
+
+function cardBrand(num: string) {
+  const n = num.replace(/\s/g, "");
+  if (n.startsWith("4")) return "VISA";
+  if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n)) return "MC";
+  return null;
+}
+
+export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, currency }: ReservationFormProps) {
   const router = useRouter();
+  const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [card, setCard] = useState({ number: "", holder: "", expiry: "", cvv: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<string[]>([]);
 
   const totalPrice = form.participantCount * pricePerPerson;
 
@@ -44,41 +57,55 @@ export function ReservationForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function validateStep1() {
+    if (!form.customerName.trim() || form.customerName.trim().length < 2) {
+      setError("Ad soyad en az 2 karakter olmalıdır."); return false;
+    }
+    if (!form.customerEmail.includes("@")) {
+      setError("Geçerli bir e-posta adresi girin."); return false;
+    }
+    if (form.customerPhone.replace(/\D/g, "").length < 7) {
+      setError("Geçerli bir telefon numarası girin."); return false;
+    }
+    return true;
+  }
+
+  function validateStep2() {
+    if (card.number.replace(/\s/g, "").length < 16) {
+      setError("Kart numarası 16 haneli olmalıdır."); return false;
+    }
+    if (card.holder.trim().length < 2) {
+      setError("Kart üzerindeki adı girin."); return false;
+    }
+    if (card.expiry.length < 5) {
+      setError("Geçerli bir son kullanma tarihi girin."); return false;
+    }
+    if (card.cvv.length < 3) {
+      setError("CVV 3 haneli olmalıdır."); return false;
+    }
+    return true;
+  }
+
+  function handleNext(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (validateStep1()) setStep(2);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setFieldErrors([]);
-
-    if (!form.customerName.trim() || form.customerName.trim().length < 2) {
-      setError("Ad soyad en az 2 karakter olmalıdır.");
-      return;
-    }
-    if (!form.customerEmail.includes("@")) {
-      setError("Geçerli bir e-posta adresi girin.");
-      return;
-    }
-    if (form.customerPhone.replace(/\D/g, "").length < 7) {
-      setError("Geçerli bir telefon numarası girin.");
-      return;
-    }
+    if (!validateStep2()) return;
 
     setLoading(true);
-
     try {
       const res = await fetch("/api/v1/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, ...form }),
       });
-
       const data = await res.json();
-
-      if (!data.success) {
-        setError(data.message ?? "Bir hata oluştu.");
-        if (data.errors?.length) setFieldErrors(data.errors);
-        return;
-      }
-
+      if (!data.success) { setError(data.message ?? "Bir hata oluştu."); return; }
       router.push(`/rezervasyon/basarili?id=${data.data.id}`);
     } catch {
       setError("Bağlantı hatası. Lütfen tekrar deneyin.");
@@ -87,130 +114,189 @@ export function ReservationForm({
     }
   }
 
+  const brand = cardBrand(card.number);
+
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-      {/* Name */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="customerName" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-          Ad Soyad <span aria-hidden className="text-[var(--accent)]">*</span>
-        </label>
-        <input
-          id="customerName"
-          type="text"
-          required
-          autoComplete="name"
-          value={form.customerName}
-          onChange={(e) => set("customerName", e.target.value)}
-          className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
-          placeholder="Adınız ve soyadınız"
-        />
+    <div className="flex flex-col gap-6">
+      {/* Steps */}
+      <div className="flex items-center gap-3">
+        {[{ n: 1, label: "Bilgiler" }, { n: 2, label: "Ödeme" }].map(({ n, label }) => (
+          <div key={n} className="flex items-center gap-2">
+            <div className={`flex h-6 w-6 items-center justify-center text-xs font-medium ${step >= n ? "bg-[var(--text-primary)] text-[var(--surface)]" : "border border-[var(--border)] text-[var(--text-muted)]"}`}>
+              {n}
+            </div>
+            <span className={`text-xs ${step >= n ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>{label}</span>
+            {n < 2 && <span className="text-[var(--text-disabled)]">—</span>}
+          </div>
+        ))}
       </div>
 
-      {/* Email */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="customerEmail" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-          E-posta <span aria-hidden className="text-[var(--accent)]">*</span>
-        </label>
-        <input
-          id="customerEmail"
-          type="email"
-          required
-          autoComplete="email"
-          value={form.customerEmail}
-          onChange={(e) => set("customerEmail", e.target.value)}
-          className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
-          placeholder="ornek@email.com"
-        />
-      </div>
+      {step === 1 ? (
+        <form onSubmit={handleNext} noValidate className="flex flex-col gap-6">
+          {/* Name */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="customerName" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Ad Soyad <span aria-hidden className="text-[var(--accent)]">*</span>
+            </label>
+            <input id="customerName" type="text" required autoComplete="name" value={form.customerName}
+              onChange={(e) => set("customerName", e.target.value)}
+              className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
+              placeholder="Adınız ve soyadınız" />
+          </div>
 
-      {/* Phone */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="customerPhone" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-          Telefon <span aria-hidden className="text-[var(--accent)]">*</span>
-        </label>
-        <input
-          id="customerPhone"
-          type="tel"
-          required
-          autoComplete="tel"
-          value={form.customerPhone}
-          onChange={(e) => set("customerPhone", e.target.value)}
-          className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
-          placeholder="+90 5XX XXX XX XX"
-        />
-      </div>
+          {/* Email */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="customerEmail" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              E-posta <span aria-hidden className="text-[var(--accent)]">*</span>
+            </label>
+            <input id="customerEmail" type="email" required autoComplete="email" value={form.customerEmail}
+              onChange={(e) => set("customerEmail", e.target.value)}
+              className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
+              placeholder="ornek@email.com" />
+          </div>
 
-      {/* Participant count */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="participantCount" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-          Katılımcı Sayısı
-        </label>
-        <select
-          id="participantCount"
-          value={form.participantCount}
-          onChange={(e) => set("participantCount", Number(e.target.value))}
-          className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)]"
-        >
-          {Array.from({ length: maxParticipants }, (_, i) => i + 1).map((n) => (
-            <option key={n} value={n}>
-              {n} kişi
-            </option>
-          ))}
-        </select>
-      </div>
+          {/* Phone */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="customerPhone" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Telefon <span aria-hidden className="text-[var(--accent)]">*</span>
+            </label>
+            <input id="customerPhone" type="tel" required autoComplete="tel" value={form.customerPhone}
+              onChange={(e) => set("customerPhone", e.target.value)}
+              className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
+              placeholder="+90 5XX XXX XX XX" />
+          </div>
 
-      {/* Notes */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="notes" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-          Not (isteğe bağlı)
-        </label>
-        <textarea
-          id="notes"
-          rows={3}
-          value={form.notes}
-          onChange={(e) => set("notes", e.target.value)}
-          className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)] resize-none"
-          placeholder="Alerji, özel durum veya sormak istediğiniz bir şey..."
-        />
-      </div>
+          {/* Participant count */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="participantCount" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Katılımcı Sayısı
+            </label>
+            <select id="participantCount" value={form.participantCount}
+              onChange={(e) => set("participantCount", Number(e.target.value))}
+              className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)]">
+              {Array.from({ length: maxParticipants }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>{n} kişi</option>
+              ))}
+            </select>
+          </div>
 
-      {/* Error */}
-      {error && (
-        <div role="alert" className="border border-red-200 bg-red-50 p-3">
-          <p className="text-sm text-red-700">{error}</p>
-          {fieldErrors.length > 0 && (
-            <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs text-red-600">
-              {fieldErrors.map((e) => <li key={e}>{e}</li>)}
-            </ul>
+          {/* Notes */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="notes" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Not (isteğe bağlı)
+            </label>
+            <textarea id="notes" rows={3} value={form.notes} onChange={(e) => set("notes", e.target.value)}
+              className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)] resize-none"
+              placeholder="Alerji, özel durum veya sormak istediğiniz bir şey..." />
+          </div>
+
+          {error && (
+            <div role="alert" className="border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
           )}
-        </div>
+
+          <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-6">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-[var(--text-muted)]">Toplam</span>
+              <span className="text-xl font-light text-[var(--text-primary)]">
+                {totalPrice.toLocaleString("tr-TR")} ₺
+              </span>
+            </div>
+            <button type="submit"
+              className="h-12 w-full bg-[var(--text-primary)] text-xs font-medium tracking-[0.15em] uppercase text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)]">
+              Devam Et →
+            </button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+          {/* Secure badge */}
+          <div className="flex items-center gap-2 border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600 shrink-0">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span className="text-xs text-[var(--text-muted)]">256-bit SSL ile güvenli ödeme</span>
+            {brand && <span className="ml-auto text-xs font-medium tracking-wider text-[var(--text-secondary)]">{brand}</span>}
+          </div>
+
+          {/* Card number */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Kart Numarası <span aria-hidden className="text-[var(--accent)]">*</span>
+            </label>
+            <input type="text" inputMode="numeric" autoComplete="cc-number" placeholder="0000 0000 0000 0000"
+              value={card.number}
+              onChange={(e) => setCard((p) => ({ ...p, number: formatCardNumber(e.target.value) }))}
+              className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 font-mono text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)] tracking-widest" />
+          </div>
+
+          {/* Card holder */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Kart Üzerindeki Ad <span aria-hidden className="text-[var(--accent)]">*</span>
+            </label>
+            <input type="text" autoComplete="cc-name" placeholder="AD SOYAD"
+              value={card.holder}
+              onChange={(e) => setCard((p) => ({ ...p, holder: e.target.value.toUpperCase() }))}
+              className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm uppercase text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)] tracking-wider" />
+          </div>
+
+          {/* Expiry + CVV */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+                Son Kullanma <span aria-hidden className="text-[var(--accent)]">*</span>
+              </label>
+              <input type="text" inputMode="numeric" autoComplete="cc-exp" placeholder="AA/YY"
+                value={card.expiry}
+                onChange={(e) => setCard((p) => ({ ...p, expiry: formatExpiry(e.target.value) }))}
+                className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 font-mono text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)] tracking-widest" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+                CVV <span aria-hidden className="text-[var(--accent)]">*</span>
+              </label>
+              <input type="password" inputMode="numeric" autoComplete="cc-csc" placeholder="•••"
+                maxLength={4}
+                value={card.cvv}
+                onChange={(e) => setCard((p) => ({ ...p, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+                className="h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]" />
+            </div>
+          </div>
+
+          {error && (
+            <div role="alert" className="border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-6">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-[var(--text-muted)]">Ödenecek Tutar</span>
+              <span className="text-xl font-light text-[var(--text-primary)]">
+                {totalPrice.toLocaleString("tr-TR")} ₺
+              </span>
+            </div>
+
+            <button type="submit" disabled={loading}
+              className="h-12 w-full bg-[var(--text-primary)] text-xs font-medium tracking-[0.15em] uppercase text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)] disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? "İşleniyor..." : `${totalPrice.toLocaleString("tr-TR")} ₺ Öde`}
+            </button>
+
+            <button type="button" onClick={() => { setStep(1); setError(null); }}
+              className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)]">
+              ← Geri dön
+            </button>
+
+            <p className="text-center text-xs text-[var(--text-muted)]">
+              Devam ederek{" "}
+              <a href="/yasal/iptal-iade" className="underline underline-offset-2">iptal ve iade koşullarını</a>{" "}
+              kabul etmiş olursunuz.
+            </p>
+          </div>
+        </form>
       )}
-
-      {/* Total + Submit */}
-      <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-6">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm text-[var(--text-muted)]">Toplam</span>
-          <span className="text-xl font-light text-[var(--text-primary)]">
-            {totalPrice.toLocaleString("tr-TR")} ₺
-          </span>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="h-12 w-full bg-[var(--text-primary)] text-xs font-medium tracking-[0.15em] uppercase text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Gönderiliyor..." : "Rezervasyon Yap"}
-        </button>
-
-        <p className="text-center text-xs text-[var(--text-muted)]">
-          Devam ederek{" "}
-          <a href="/yasal/iptal-iade" className="underline underline-offset-2">
-            iptal ve iade koşullarını
-          </a>{" "}
-          kabul etmiş olursunuz.
-        </p>
-      </div>
-    </form>
+    </div>
   );
 }
