@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const ADMIN_PATHS = ["/admin"];
+const ADMIN_PATHS: string[] = [];
 const AUTH_PATHS = ["/hesabim"];
 const AUTH_PAGES = ["/giris", "/kayit"];
 
