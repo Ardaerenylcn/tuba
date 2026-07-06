@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getHakkimizdaConfig } from "@/lib/site-content";
 import { HakkimizdaContent } from "./content";
 
 export const metadata: Metadata = {
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
     "Atölye Biz, İstanbul'da kuyumculuk ve mücevher eğitimleri sunan takı tasarım atölyesidir.",
 };
 
-export default function HakkimizdaPage() {
-  return <HakkimizdaContent />;
+export default async function HakkimizdaPage() {
+  const config = await getHakkimizdaConfig();
+  return <HakkimizdaContent config={config} />;
 }

@@ -1,7 +1,33 @@
 import { db } from "@/lib/db";
 
+export interface HeroBannerConfig {
+  imageUrl: string;
+  imageId: string | null;
+  eyebrow: string;
+  title: string;
+  location: string;
+  description: string;
+  btn1Text: string;
+  btn1Href: string;
+  btn2Text: string;
+  btn2Href: string;
+}
+
+export const DEFAULT_HERO_BANNER: HeroBannerConfig = {
+  imageUrl: "/pic_01.jpeg",
+  imageId: null,
+  eyebrow: "Sevgiyle el yapımı ♥",
+  title: "ATÖLYE BİZ",
+  location: "İstanbul'da",
+  description: "Çağdaş takı tasarımını, el işçiliğini ve yaratıcı atölye deneyimlerini birlikte keşfedelim.",
+  btn1Text: "Keşfet",
+  btn1Href: "/atolyeler",
+  btn2Text: "İletişim",
+  btn2Href: "/iletisim",
+};
+
 export async function getHomePageData() {
-  const [workshopsRaw, certificatesRaw] = await Promise.all([
+  const [workshopsRaw, certificatesRaw, categoriesRaw, heroBannerEntry] = await Promise.all([
     db.program.findMany({
       where: { status: "published", type: "workshop" },
       orderBy: { createdAt: "desc" },
@@ -30,9 +56,16 @@ export async function getHomePageData() {
         },
       },
     }),
+    db.programCategory.findMany({
+      where: { showOnHome: true, isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      include: { _count: { select: { programs: true } } },
+    }),
+    db.siteContent.findUnique({
+      where: { key_locale: { key: "hero_banner", locale: "tr" } },
+    }),
   ]);
 
-  // Serialize Prisma Decimal fields before passing to Client Components
   const workshops = workshopsRaw.map((w) => ({
     ...w,
     basePrice: Number(w.basePrice),
@@ -48,8 +81,13 @@ export async function getHomePageData() {
     sessions: c.sessions.map((s) => ({ startAt: s.startAt })),
   }));
 
-  return { workshops, certificates };
+  const heroBanner: HeroBannerConfig = heroBannerEntry?.value
+    ? { ...DEFAULT_HERO_BANNER, ...(heroBannerEntry.value as Partial<HeroBannerConfig>) }
+    : DEFAULT_HERO_BANNER;
+
+  return { workshops, certificates, categories: categoriesRaw, heroBanner };
 }
 
 export type HomeWorkshop = Awaited<ReturnType<typeof getHomePageData>>["workshops"][number];
 export type HomeCertificate = Awaited<ReturnType<typeof getHomePageData>>["certificates"][number];
+export type HomeCategory = Awaited<ReturnType<typeof getHomePageData>>["categories"][number];

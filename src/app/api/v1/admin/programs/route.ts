@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth-server";
 
 const programSchema = z.object({
   type: z.enum(["workshop", "certificate"]),
+  categoryId: z.string().optional().nullable(),
   title: z.string().min(2).max(200),
   slug: z.string().min(2).max(200).regex(/^[a-z0-9-]+$/, "Slug yalnızca küçük harf, rakam ve tire içerebilir"),
   shortDescription: z.string().min(10).max(500),
@@ -58,11 +59,12 @@ export async function POST(request: Request) {
     const existing = await db.program.findUnique({ where: { slug: parsed.data.slug } });
     if (existing) return badRequest("Bu slug zaten kullanımda.");
 
-    const { coverImageId, ...rest } = parsed.data;
+    const { coverImageId, categoryId, ...rest } = parsed.data;
     const program = await db.program.create({
       data: {
         ...rest,
         ...(coverImageId ? { coverImage: { connect: { id: coverImageId } } } : {}),
+        ...(categoryId ? { category: { connect: { id: categoryId } } } : {}),
       },
     });
 

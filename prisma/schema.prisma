@@ -82,9 +82,26 @@ model Verification {
 // Programs
 // ---------------------------------------------------------------------------
 
+model ProgramCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  showOnHome  Boolean   @default(true)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  programs    Program[]
+
+  @@map("program_categories")
+}
+
 model Program {
   id               String        @id @default(cuid())
   type             ProgramType
+  categoryId       String?
   title            String
   slug             String        @unique
   shortDescription String
@@ -103,6 +120,7 @@ model Program {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
+  category      ProgramCategory?     @relation(fields: [categoryId], references: [id])
   coverImage    Media?               @relation("ProgramCover", fields: [coverImageId], references: [id])
   requirements  ProgramRequirement[]
   faqs          ProgramFaq[]

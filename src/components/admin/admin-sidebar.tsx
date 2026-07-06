@@ -14,6 +14,7 @@ const NAV = [
     label: "İçerik",
     items: [
       { href: "/admin/programlar", label: "Programlar" },
+      { href: "/admin/turler", label: "Program Türleri" },
       { href: "/admin/oturumlar", label: "Oturumlar" },
       { href: "/admin/galeri", label: "Galeri" },
     ],
@@ -30,8 +31,9 @@ const NAV = [
   {
     label: "Site",
     items: [
+      { href: "/admin/site", label: "Site İçeriği" },
+      { href: "/admin/banner", label: "Giriş Bannerı" },
       { href: "/admin/medya", label: "Medya" },
-      { href: "/admin/icerik", label: "İçerik" },
       { href: "/admin/kullanicilar", label: "Kullanıcılar" },
       { href: "/admin/audit-log", label: "Audit Log" },
       { href: "/admin/ayarlar", label: "Ayarlar" },

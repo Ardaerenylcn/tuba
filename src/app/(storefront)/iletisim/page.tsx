@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IletisimContent } from "./content";
 import { getSettings } from "@/lib/settings";
+import { getAllSiteContent } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: "İletişim | Atölye Biz",
@@ -9,6 +10,14 @@ export const metadata: Metadata = {
 };
 
 export default async function IletisimPage() {
-  const { mapEmbedUrl } = await getSettings();
-  return <IletisimContent mapEmbedUrl={mapEmbedUrl ?? null} />;
+  const [{ mapEmbedUrl }, siteContent] = await Promise.all([
+    getSettings(),
+    getAllSiteContent(),
+  ]);
+  return (
+    <IletisimContent
+      mapEmbedUrl={mapEmbedUrl ?? null}
+      config={siteContent.contact_info}
+    />
+  );
 }

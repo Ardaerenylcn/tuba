@@ -4,8 +4,24 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { HeroScene } from "./hero-scene";
-import type { HomeWorkshop, HomeCertificate } from "@/lib/home-content";
+import type { HomeWorkshop, HomeCertificate, HomeCategory, HeroBannerConfig } from "@/lib/home-content";
+import type { AtolyeBizConfig, TrustBadgesConfig, NewsletterConfig } from "@/lib/site-content";
+
+const _DEF_ATOLYE_BIZ: AtolyeBizConfig = {
+  heading: "Atölye Biz", description: "Takı tasarımını keşfetmek, üretim süreçlerini öğrenmek ve kendi parçanı yaratmak için programlarımıza katılabilirsin.", linkText: "Tüm Programları İncele →",
+  workshops: { title: "Atölyeler", sub: "Takı tasarımı ve el işçiliği atölyeleri", imageUrl: null, imageId: null },
+  certificates: { title: "Sertifikalar", sub: "Profesyonel sertifika programları", imageUrl: null, imageId: null },
+};
+const _DEF_TRUST: TrustBadgesConfig = { badges: [
+  { icon: "shipping", title: "Ücretsiz Kargo", sub: "Tüm siparişlerde" },
+  { icon: "handmade", title: "El Yapımı", sub: "Tüm ürünler el yapımıdır" },
+  { icon: "return", title: "İade & Değişim", sub: "14 gün içinde kolay iade" },
+  { icon: "secure", title: "Güvenli Ödeme", sub: "256-bit SSL koruması" },
+]};
+const _DEF_NEWSLETTER: NewsletterConfig = {
+  heading: "Yeniliklerden Haberdar Ol", description: "Koleksiyonlar, atölye duyuruları ve özel indirimlerden ilk sen haberdar ol.",
+  instagramUrl: "#", pinterestUrl: "#", youtubeUrl: "#", email: "info@tubaatman.com",
+};
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -24,9 +40,9 @@ function FadeUp({
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.9, delay, ease }}
+      transition={{ duration: 0.8, delay, ease }}
     >
       {children}
     </motion.div>
@@ -35,599 +51,627 @@ function FadeUp({
 
 // ─── Hero ────────────────────────────────────────────────────────────────────
 
-export function HeroSection() {
+export function HeroSection({ config }: { config: HeroBannerConfig }) {
   return (
-    <section className="relative min-h-svh overflow-hidden bg-[var(--color-stone-950)]">
-      {/* 3D ring — right half on desktop, full-bg on mobile */}
-      <div className="absolute inset-0 lg:left-[44%]">
-        <HeroScene />
-        {/* fade left edge on desktop so ring never peeks behind the text content */}
-        <div className="absolute inset-y-0 left-0 w-24 hidden lg:block bg-gradient-to-r from-[var(--color-stone-950)] to-transparent" />
-        {/* gradient mask so ring blends into dark bg on mobile */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-stone-950)] via-[var(--color-stone-950)]/60 to-transparent lg:hidden" />
-      </div>
+    <section
+      className="relative w-full overflow-hidden"
+      style={{ height: "calc(100svh - 104px)", minHeight: "520px" }}
+    >
+      {/* Arka plan görseli */}
+      <Image
+        src={config.imageUrl}
+        alt="Tuba Atman Mücevher Atölyesi"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+      />
 
-      {/* Text content */}
-      <div className="relative z-10 flex min-h-svh items-center">
-        <div className="mx-auto w-full max-w-6xl px-6 py-32">
-          <div className="max-w-xl">
+      {/* Koyu katman — sola doğru metni okunur kılar */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to right, rgba(20,10,5,0.78) 0%, rgba(20,10,5,0.50) 50%, rgba(20,10,5,0.18) 100%)",
+        }}
+      />
+
+      {/* Alt degrade — diğer seksiyonlara yumuşak geçiş */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent, rgba(245,237,224,0.55))",
+        }}
+      />
+
+      {/* İçerik */}
+      <div className="relative h-full mx-auto max-w-7xl px-6 flex items-center">
+        <div className="max-w-xl">
+          {config.eyebrow && (
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease }}
+              className="mb-5 text-[10px] font-medium tracking-[0.35em] uppercase text-white/70"
+            >
+              {config.eyebrow}
+            </motion.p>
+          )}
+
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.25, ease }}
+            className="mb-3 leading-none tracking-tight text-white"
+            style={{
+              fontFamily: "var(--font-cormorant), Georgia, serif",
+              fontWeight: 700,
+              fontSize: "clamp(3.8rem, 9vw, 7rem)",
+            }}
+          >
+            {config.title}
+          </motion.h1>
+
+          {config.location && (
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.38, ease }}
+              className="mb-8 text-[12px] tracking-[0.35em] uppercase text-white/60"
+            >
+              {config.location}
+            </motion.p>
+          )}
+
+          {config.description && (
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1, ease }}
-              className="mb-6 text-[10px] font-medium tracking-[0.35em] uppercase text-[var(--color-stone-400)]"
+              transition={{ duration: 0.8, delay: 0.48, ease }}
+              className="mb-10 max-w-sm text-[15px] leading-relaxed text-white/80"
             >
-              Takı Tasarım Kursu · İstanbul
+              {config.description}
             </motion.p>
+          )}
 
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.25, ease }}
-              className="mb-3 text-5xl font-light leading-[1.08] tracking-tight text-[var(--color-stone-50)] sm:text-6xl lg:text-7xl"
-            >
-              Atölye Biz
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.35, ease }}
-              className="mb-8 text-lg font-light text-[var(--color-warm-300)] sm:text-xl"
-            >
-              Kuyumculuk ve Mücevher Eğitimleri
-            </motion.p>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.45, ease }}
-              className="mb-12 max-w-sm text-base leading-relaxed text-[var(--color-stone-400)] sm:text-lg"
-            >
-              Küçük gruplarla yürütülen atölye programlarında gümüş, altın ve
-              taş işleme sanatını öğren. Her seviyeye uygun oturumlar,
-              deneyimli eğitmenler.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.62, ease }}
-              className="flex flex-wrap items-center gap-4"
-            >
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.62, ease }}
+            className="flex flex-wrap gap-4"
+          >
+            {config.btn1Text && (
               <Link
-                href="/atolyeler"
-                className="inline-flex h-12 items-center justify-center bg-[var(--color-warm-400)] px-8 text-xs font-medium tracking-[0.15em] uppercase text-[var(--color-stone-950)] transition-colors hover:bg-[var(--color-warm-300)]"
+                href={config.btn1Href || "/atolyeler"}
+                className="inline-flex h-12 items-center justify-center bg-white px-9 text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--text-primary)] transition-opacity hover:opacity-85"
               >
-                Atölyeleri İncele
+                {config.btn1Text}
               </Link>
+            )}
+            {config.btn2Text && (
               <Link
-                href="/sertifikalar"
-                className="inline-flex h-12 items-center justify-center border border-[var(--color-stone-600)] px-8 text-xs font-medium tracking-[0.15em] uppercase text-[var(--color-stone-300)] transition-colors hover:border-[var(--color-stone-400)] hover:text-[var(--color-stone-100)]"
+                href={config.btn2Href || "/iletisim"}
+                className="inline-flex h-12 items-center justify-center border border-white/50 px-9 text-[11px] font-medium tracking-[0.2em] uppercase text-white transition-all hover:border-white hover:bg-white/10"
               >
-                Sertifika Programları
+                {config.btn2Text}
               </Link>
-            </motion.div>
-          </div>
+            )}
+          </motion.div>
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Aşağı kaydır oku */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        transition={{ duration: 1, delay: 1.1 }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
-        <span className="text-[9px] tracking-[0.3em] uppercase text-[var(--color-stone-600)]">
-          Keşfet
-        </span>
         <motion.div
-          animate={{ y: [0, 6, 0] }}
+          animate={{ y: [0, 7, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="h-8 w-px bg-gradient-to-b from-[var(--color-stone-600)] to-transparent"
+          className="h-9 w-px bg-gradient-to-b from-white/60 to-transparent"
         />
       </motion.div>
     </section>
   );
 }
 
-// ─── Marquee ─────────────────────────────────────────────────────────────────
+// ─── Collections ─────────────────────────────────────────────────────────────
 
-const MARQUEE_ITEMS = [
-  "Gümüş Kuyumculuk",
-  "Taş Kakma",
-  "Ring Yapımı",
-  "Küpe Tasarımı",
-  "El İşçiliği",
-  "Altın İşleme",
-  "Tel Sarma",
-  "Kolye Yapımı",
+const COLLECTIONS_TOP = [
+  { slug: "kolyeler", label: "Kolyeler", bg: "#e2cdb5" },
+  { slug: "yuzukler", label: "Yüzükler", bg: "#d6c9b4" },
 ];
 
-export function MarqueeStrip() {
-  const all = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+const COLLECTIONS_BOTTOM = [
+  { slug: "kupeler", label: "Küpeler", bg: "#dfc8ae" },
+  { slug: "bileklikler", label: "Bileklikler", bg: "#cfc5b6" },
+  { slug: "charmlar", label: "Charm'lar", bg: "#d9d3c6" },
+];
 
+function CollectionCard({
+  slug,
+  label,
+  bg,
+  delay = 0,
+}: {
+  slug: string;
+  label: string;
+  bg: string;
+  delay?: number;
+}) {
   return (
-    <div className="overflow-hidden border-y border-[var(--border)] bg-[var(--bg-subtle)] py-3.5">
-      <div
-        className="flex w-max whitespace-nowrap"
-        style={{ animation: "marquee 32s linear infinite" }}
+    <FadeUp delay={delay}>
+      <Link
+        href={`/koleksiyonlar/${slug}`}
+        className="group block"
+        aria-label={label}
       >
-        {all.map((item, i) => (
-          <span
-            key={i}
-            className="inline-flex items-center gap-6 pr-6 text-[10px] font-medium tracking-[0.25em] uppercase text-[var(--text-muted)]"
-          >
-            {item}
-            <span
-              className="inline-block h-1 w-1 rounded-full bg-[var(--color-warm-400)]"
-              aria-hidden
-            />
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Stats ───────────────────────────────────────────────────────────────────
-
-export function StatsSection() {
-  const stats = [
-    { value: "8", label: "Yıllık Deneyim" },
-    { value: "1.200+", label: "Mezun Öğrenci" },
-    { value: "≤6", label: "Kişilik Gruplar" },
-    { value: "3", label: "Uzman Eğitmen" },
-  ];
-
-  return (
-    <section className="border-b border-[var(--border)] bg-[var(--surface)]">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid grid-cols-2 divide-x divide-y divide-[var(--border)] sm:grid-cols-4 sm:divide-y-0">
-          {stats.map((s, i) => (
-            <FadeUp key={s.label} delay={i * 0.08}>
-              <div className="flex flex-col items-center justify-center gap-1.5 px-4 py-10">
-                <span className="text-3xl font-light tracking-tight text-[var(--text-primary)] sm:text-4xl">
-                  {s.value}
-                </span>
-                <span className="text-center text-[10px] tracking-[0.12em] text-[var(--text-muted)]">
-                  {s.label}
-                </span>
-              </div>
-            </FadeUp>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Process ─────────────────────────────────────────────────────────────────
-
-export function ProcessSection() {
-  const steps = [
-    {
-      num: "01",
-      title: "Programını seç",
-      desc: "Seviyene ve ilgi alanına uygun bir atölye veya sertifika programına göz at.",
-    },
-    {
-      num: "02",
-      title: "Oturumunu ayır",
-      desc: "Müsait olduğun tarihi seç, kısa formu doldur. Yer ayırtmak birkaç dakika.",
-    },
-    {
-      num: "03",
-      title: "Gel, yarat",
-      desc: "Küçük grupta, deneyimli eğitmenle. Gün sonunda elinden çıkan bir takı seninle gidiyor.",
-    },
-  ];
-
-  return (
-    <section className="border-b border-[var(--border)] bg-[var(--bg-subtle)] py-24">
-      <div className="mx-auto max-w-6xl px-6">
-        <FadeUp className="mb-16">
-          <p className="mb-3 text-[10px] font-medium tracking-[0.3em] uppercase text-[var(--text-muted)]">
-            Nasıl İşliyor?
-          </p>
-          <h2 className="text-3xl font-light tracking-tight text-[var(--text-primary)] sm:text-4xl">
-            Üç adımda başla.
-          </h2>
-        </FadeUp>
-
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-0">
-          {steps.map((step, i) => (
-            <FadeUp key={step.num} delay={i * 0.12} className="sm:pr-14">
-              <div className="border-t-2 border-[var(--color-warm-400)] pt-6">
-                <span className="mb-5 block text-5xl font-light text-[var(--color-stone-200)]">
-                  {step.num}
-                </span>
-                <h3 className="mb-3 text-base font-medium text-[var(--text-primary)]">
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                  {step.desc}
-                </p>
-              </div>
-            </FadeUp>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Workshops ───────────────────────────────────────────────────────────────
-
-function WorkshopCard({ w, index }: { w: HomeWorkshop; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.15 });
-  const nextSession = w.sessions[0];
-  const price = nextSession?.priceOverride ?? w.basePrice;
-  const href = `/atolyeler/${w.slug}`;
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 28 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease }}
-      className="group relative flex flex-col overflow-hidden border border-[var(--border)] bg-[var(--surface)] transition-shadow duration-300 hover:shadow-[0_8px_32px_0_rgb(0,0,0,0.08)]"
-    >
-      <Link href={href} className="block overflow-hidden">
-        <div className="relative aspect-[3/4] overflow-hidden bg-[var(--bg-muted)]">
-          {w.coverImage?.url ? (
-            <Image
-              src={w.coverImage.url}
-              alt={w.title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-muted)]">
-              <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-disabled)]">
-                Atölye
-              </span>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-[var(--color-stone-950)]/0 transition-colors duration-500 group-hover:bg-[var(--color-stone-950)]/8" />
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col p-5">
-        <div className="mb-2 flex items-center gap-2">
-          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--text-muted)]">
-            Atölye
-          </p>
-          {w.level && (
-            <>
-              <span className="text-[var(--border-strong)]">·</span>
-              <p className="text-[10px] tracking-[0.1em] text-[var(--text-muted)]">
-                {{
-                  beginner: "Başlangıç",
-                  intermediate: "Orta",
-                  advanced: "İleri",
-                  all_levels: "Her Seviye",
-                }[w.level] ?? w.level}
-              </p>
-            </>
-          )}
-        </div>
-        <Link href={href}>
-          <h3 className="mb-2 text-base font-medium leading-snug text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
-            {w.title}
-          </h3>
-        </Link>
-        <p className="mb-4 line-clamp-2 flex-1 text-sm leading-relaxed text-[var(--text-secondary)]">
-          {w.shortDescription}
-        </p>
-        <div className="flex items-center justify-between border-t border-[var(--border)] pt-4">
-          <div>
-            <span className="text-base font-light text-[var(--text-primary)]">
-              {price.toLocaleString("tr-TR")} ₺
-            </span>
-            <span className="ml-1 text-[11px] text-[var(--text-muted)]">/ kişi</span>
-          </div>
-          {nextSession ? (
-            <span className="text-[11px] text-[var(--text-muted)]">
-              {new Intl.DateTimeFormat("tr-TR", {
-                day: "numeric",
-                month: "short",
-                timeZone: "Europe/Istanbul",
-              }).format(new Date(nextSession.startAt))}
-            </span>
-          ) : (
-            <span className="text-[11px] text-[var(--text-disabled)]">Yakında</span>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-export function WorkshopsSection({ workshops }: { workshops: HomeWorkshop[] }) {
-  return (
-    <section className="mx-auto max-w-6xl px-6 py-24">
-      <FadeUp className="mb-14 flex items-end justify-between">
-        <div>
-          <p className="mb-3 text-[10px] font-medium tracking-[0.3em] uppercase text-[var(--text-muted)]">
-            Programlar
-          </p>
-          <h2 className="text-3xl font-light tracking-tight text-[var(--text-primary)] sm:text-4xl">
-            Atölyeler
-          </h2>
-        </div>
-        <Link
-          href="/atolyeler"
-          className="hidden text-sm text-[var(--text-secondary)] underline underline-offset-4 transition-colors hover:text-[var(--text-primary)] sm:block"
+        {/* Görsel alanı */}
+        <div
+          className="relative aspect-[3/4] overflow-hidden mb-4"
+          style={{ background: bg }}
         >
-          Tümünü gör
-        </Link>
+          {/* Dekoratif halka SVG */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <svg
+              viewBox="0 0 120 120"
+              fill="none"
+              stroke="#2c1810"
+              strokeWidth="0.6"
+              className="w-2/3 h-2/3 opacity-[0.15]"
+              aria-hidden
+            >
+              <circle cx="60" cy="60" r="55" />
+              <circle cx="60" cy="60" r="44" />
+              <circle cx="60" cy="60" r="33" />
+              <circle cx="60" cy="60" r="22" />
+              <circle cx="60" cy="60" r="11" />
+            </svg>
+          </div>
+
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-[#2c1810]/0 group-hover:bg-[#2c1810]/8 transition-colors duration-500" />
+
+          {/* Hover ölçek efekti — iç kapsayıcı */}
+          <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105 origin-center" />
+        </div>
+
+        {/* Metin */}
+        <p
+          className="mb-1 text-[11px] font-semibold tracking-[0.22em] uppercase"
+          style={{ color: "#2c1810", fontFamily: "var(--font-cormorant), Georgia, serif" }}
+        >
+          {label}
+        </p>
+        <p
+          className="text-[12px] tracking-[0.08em] transition-opacity duration-300 opacity-60 group-hover:opacity-100"
+          style={{ color: "#2c1810" }}
+        >
+          Keşfet →
+        </p>
+      </Link>
+    </FadeUp>
+  );
+}
+
+export function CollectionsSection() {
+  return (
+    <section style={{ background: "#f5ede0" }} className="py-20">
+      {/* Üst yatay çizgi */}
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="w-full h-px mb-12" style={{ background: "#2c1810", opacity: 0.15 }} />
+      </div>
+
+      {/* Başlık */}
+      <FadeUp className="mb-14 text-center px-6">
+        <h2
+          className="mb-4 tracking-[0.25em] uppercase"
+          style={{
+            fontFamily: "var(--font-cormorant), Georgia, serif",
+            fontWeight: 600,
+            fontSize: "clamp(1.75rem, 3vw, 2.25rem)",
+            color: "#2c1810",
+            letterSpacing: "0.25em",
+          }}
+        >
+          Koleksiyonlar
+        </h2>
+        <p
+          className="mb-3 text-[20px]"
+          style={{ color: "#8b2e1a" }}
+          aria-hidden
+        >
+          ♥
+        </p>
+        <p
+          className="text-[13px] tracking-[0.04em] leading-relaxed"
+          style={{ color: "#2c1810", opacity: 0.6 }}
+        >
+          Zamansız tasarımlar, el işçiliğiyle hayat bulur.
+        </p>
       </FadeUp>
 
-      {workshops.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {workshops.map((w, i) => (
-            <WorkshopCard key={w.id} w={w} index={i} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex min-h-[240px] items-center justify-center border border-[var(--border)]">
-          <p className="text-sm text-[var(--text-muted)]">
-            Yakında yeni atölyeler eklenecek.
-          </p>
-        </div>
-      )}
-
-      <div className="mt-6 sm:hidden">
-        <Link
-          href="/atolyeler"
-          className="text-sm text-[var(--text-secondary)] underline underline-offset-4"
-        >
-          Tüm atölyeleri gör
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-// ─── Story ───────────────────────────────────────────────────────────────────
-
-export function StorySection() {
-  const techniques = ["Gümüş Tel İşleme", "Taş Kakma", "Altın Kaplama", "Granül Tekniği"];
-
-  return (
-    <section className="border-t border-[var(--color-stone-800)] bg-[var(--color-stone-900)]">
-      <div className="mx-auto max-w-6xl px-6 py-24">
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-center">
-          {/* Text */}
-          <FadeUp>
-            <p className="mb-6 text-[10px] font-medium tracking-[0.35em] uppercase text-[var(--color-stone-500)]">
-              Atölye Hikayesi
-            </p>
-            <h2 className="mb-6 text-3xl font-light leading-snug tracking-tight text-[var(--color-stone-50)] sm:text-4xl">
-              Her takıda bir emeğin,<br />
-              bir anın izi var.
-            </h2>
-            <p className="mb-4 text-base leading-relaxed text-[var(--color-stone-400)]">
-              2016&rsquo;dan bu yana küçük gruplarla çalışıyor, her katılımcıya kendi
-              sesini metal üzerinde bulma fırsatı sunuyoruz. Atölyemiz; bir kurs
-              mekânı değil, el işçiliğinin yaşatıldığı bir alan.
-            </p>
-            <p className="mb-8 text-base leading-relaxed text-[var(--color-stone-400)]">
-              Gümüş, altın ve taş işleme tekniklerini öğretirken her öğrencinin
-              kendi tasarım sesini bulmasına rehberlik ediyoruz.
-            </p>
-            <Link
-              href="/hakkimizda"
-              className="inline-flex items-center gap-2 text-sm text-[var(--color-stone-300)] transition-colors hover:text-[var(--color-stone-50)]"
-            >
-              Hikayemizi oku
-              <span aria-hidden>→</span>
-            </Link>
-          </FadeUp>
-
-          {/* Editorial tile grid */}
-          <FadeUp delay={0.15}>
-            <div className="grid grid-cols-2 divide-x divide-y divide-[var(--color-stone-700)] border border-[var(--color-stone-700)]">
-              {/* Year */}
-              <div className="p-8">
-                <p className="text-5xl font-light text-[var(--color-stone-50)]">2016</p>
-                <p className="mt-2 text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--color-stone-500)]">
-                  Kuruluş Yılı
-                </p>
-              </div>
-
-              {/* Graduates */}
-              <div className="p-8">
-                <p className="text-5xl font-light text-[var(--color-warm-400)]">1.200+</p>
-                <p className="mt-2 text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--color-stone-500)]">
-                  Mezun
-                </p>
-              </div>
-
-              {/* Techniques */}
-              <div className="flex flex-col justify-center gap-3 p-8">
-                {techniques.map((t) => (
-                  <div key={t} className="flex items-center gap-2">
-                    <div className="h-px w-4 bg-[var(--color-warm-500)]" />
-                    <p className="text-xs font-light text-[var(--color-stone-300)]">{t}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Decorative ring SVG */}
-              <div className="flex items-center justify-center p-8">
-                <svg
-                  viewBox="0 0 100 100"
-                  className="w-28 h-28 opacity-50"
-                  aria-hidden
-                >
-                  <circle
-                    cx="50" cy="50" r="40"
-                    fill="none"
-                    stroke="#d49a50"
-                    strokeWidth="10"
-                  />
-                  <circle
-                    cx="50" cy="50" r="26"
-                    fill="none"
-                    stroke="#d49a50"
-                    strokeWidth="1"
-                    strokeDasharray="3 5"
-                    opacity="0.5"
-                  />
-                </svg>
-              </div>
-            </div>
-          </FadeUp>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Certificates ────────────────────────────────────────────────────────────
-
-function CertificateCard({ c, index }: { c: HomeCertificate; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.15 });
-  const href = `/sertifikalar/${c.slug}`;
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 28 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, delay: index * 0.12, ease }}
-      className="group relative flex flex-col border border-[var(--border)] bg-[var(--surface)] transition-shadow duration-300 hover:shadow-[0_8px_32px_0_rgb(0,0,0,0.08)]"
-    >
-      <Link href={href} className="block overflow-hidden">
-        <div className="relative aspect-[3/4] overflow-hidden bg-[var(--bg-muted)]">
-          {c.coverImage?.url ? (
-            <Image
-              src={c.coverImage.url}
-              alt={c.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+      {/* Kart grid'i */}
+      <div className="mx-auto max-w-7xl px-6 space-y-4">
+        {/* Üst satır — 2 büyük kart */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {COLLECTIONS_TOP.map((col, i) => (
+            <CollectionCard
+              key={col.slug}
+              slug={col.slug}
+              label={col.label}
+              bg={col.bg}
+              delay={i * 0.08}
             />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-muted)]">
-              <span className="text-[10px] tracking-[0.2em] uppercase text-[var(--text-disabled)]">
-                Sertifika
-              </span>
-            </div>
-          )}
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col p-5">
-        <p className="mb-2 text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--accent)]">
-          Sertifika Programı
-        </p>
-        <Link href={href}>
-          <h3 className="mb-2 text-lg font-light text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
-            {c.title}
-          </h3>
-        </Link>
-        <p className="mb-4 line-clamp-2 flex-1 text-sm leading-relaxed text-[var(--text-secondary)]">
-          {c.shortDescription}
-        </p>
-        <div className="flex items-center justify-between border-t border-[var(--border)] pt-4">
-          <span className="text-base font-light text-[var(--text-primary)]">
-            {c.basePrice.toLocaleString("tr-TR")} ₺
-          </span>
-          <Link
-            href={href}
-            className="text-xs text-[var(--text-muted)] underline underline-offset-4 transition-colors hover:text-[var(--text-primary)]"
-          >
-            İncele →
-          </Link>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-export function CertificatesSection({ certificates }: { certificates: HomeCertificate[] }) {
-  if (certificates.length === 0) return null;
-
-  return (
-    <section className="border-t border-[var(--border)] bg-[var(--bg-subtle)] py-24">
-      <div className="mx-auto max-w-6xl px-6">
-        <FadeUp className="mb-14 flex items-end justify-between">
-          <div>
-            <p className="mb-3 text-[10px] font-medium tracking-[0.3em] uppercase text-[var(--text-muted)]">
-              Sertifika Programları
-            </p>
-            <h2 className="text-3xl font-light tracking-tight text-[var(--text-primary)] sm:text-4xl">
-              Ustalığa giden yol
-            </h2>
-          </div>
-          <Link
-            href="/sertifikalar"
-            className="hidden text-sm text-[var(--text-secondary)] underline underline-offset-4 transition-colors hover:text-[var(--text-primary)] sm:block"
-          >
-            Tümünü gör
-          </Link>
-        </FadeUp>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {certificates.map((c, i) => (
-            <CertificateCard key={c.id} c={c} index={i} />
           ))}
         </div>
+
+        {/* Alt satır — 3 orta kart */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {COLLECTIONS_BOTTOM.map((col, i) => (
+            <CollectionCard
+              key={col.slug}
+              slug={col.slug}
+              label={col.label}
+              bg={col.bg}
+              delay={0.16 + i * 0.08}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Alt yatay çizgi */}
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="w-full h-px mt-14" style={{ background: "#2c1810", opacity: 0.15 }} />
       </div>
     </section>
   );
 }
 
-// ─── CTA ─────────────────────────────────────────────────────────────────────
+// ─── Atölye Biz ──────────────────────────────────────────────────────────────
 
-export function CTASection() {
+const BASE_BG = ["#2c1810", "#3d2010", "#1a1008", "#4a2418", "#2a1505"];
+
+export function AtolyeBizSection({
+  workshops,
+  categories = [],
+  atolyeBizConfig,
+}: {
+  workshops: HomeWorkshop[];
+  categories?: HomeCategory[];
+  atolyeBizConfig?: AtolyeBizConfig;
+}) {
+  const config = atolyeBizConfig ?? _DEF_ATOLYE_BIZ;
+
+  const baseCards = [
+    { id: "atolyeler", title: config.workshops.title, sub: config.workshops.sub, href: "/atolyeler", bg: BASE_BG[0], type: "workshop" as const, configImageUrl: config.workshops.imageUrl },
+    { id: "sertifikalar", title: config.certificates.title, sub: config.certificates.sub, href: "/sertifikalar", bg: BASE_BG[1], type: "certificate" as const, configImageUrl: config.certificates.imageUrl },
+  ];
+
+  const extraCards = categories.map((cat, i) => ({
+    id: cat.id,
+    title: cat.name,
+    sub: cat.description ?? null,
+    href: "/atolyeler",
+    bg: BASE_BG[(i + 2) % BASE_BG.length],
+    type: null as null,
+    configImageUrl: null as null,
+  }));
+
+  const cards = [...baseCards, ...extraCards];
+  const colsCls = cards.length <= 2 ? "sm:grid-cols-2" : cards.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4";
+
   return (
-    <section className="relative overflow-hidden bg-[var(--color-stone-950)] py-32">
-      {/* Subtle warm glow */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-10"
-        style={{
-          width: "600px",
-          height: "600px",
-          background: "radial-gradient(circle, #d49a50 0%, transparent 70%)",
-        }}
-        aria-hidden
-      />
-
-      <div className="relative mx-auto max-w-6xl px-6 text-center">
-        <FadeUp>
-          <p className="mb-4 text-[10px] font-medium tracking-[0.35em] uppercase text-[var(--color-stone-500)]">
-            Başlamaya Hazır mısın?
-          </p>
-          <h2 className="mb-6 text-3xl font-light tracking-tight text-[var(--color-stone-50)] sm:text-4xl lg:text-5xl">
-            Sana uygun bir oturum bul.
-          </h2>
-          <p className="mx-auto mb-10 max-w-md text-base text-[var(--color-stone-400)]">
-            Hâlâ bir sorun mu var? Bize yazın — doğru programa yönlendirelim.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+    <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)] py-20">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 items-start">
+          {/* Sol metin */}
+          <FadeUp className="lg:sticky lg:top-28">
+            <h2
+              className="mb-3 text-[32px] leading-tight tracking-tight text-[var(--text-primary)]"
+              style={{
+                fontFamily: "var(--font-cormorant), Georgia, serif",
+                fontWeight: 700,
+                textTransform: "uppercase",
+              }}
+            >
+              {config.heading}
+            </h2>
+            <p className="mb-4 text-[var(--text-muted)] text-lg">♥</p>
+            <p className="mb-6 text-[14px] leading-relaxed text-[var(--text-secondary)] max-w-xs">
+              {config.description}
+            </p>
             <Link
               href="/atolyeler"
-              className="inline-flex h-12 items-center justify-center bg-[var(--color-warm-400)] px-10 text-xs font-medium tracking-[0.15em] uppercase text-[var(--color-stone-950)] transition-colors hover:bg-[var(--color-warm-300)]"
+              className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-primary)] underline underline-offset-4 hover:text-[var(--text-secondary)] transition-colors"
             >
-              Rezervasyon Yap
+              {config.linkText}
             </Link>
-            <Link
-              href="/iletisim"
-              className="inline-flex h-12 items-center justify-center border border-[var(--color-stone-700)] px-10 text-xs font-medium tracking-[0.15em] uppercase text-[var(--color-stone-400)] transition-colors hover:border-[var(--color-stone-500)] hover:text-[var(--color-stone-200)]"
-            >
-              İletişime Geç
-            </Link>
+          </FadeUp>
+
+          {/* Program tipi kartları */}
+          <div className={`grid grid-cols-1 gap-6 ${colsCls}`}>
+            {cards.map((card, i) => {
+              const featured = card.type ? workshops.find((w) => w.type === card.type) : null;
+              const imageUrl = card.configImageUrl ?? featured?.coverImage?.url ?? null;
+              return (
+                <FadeUp key={card.id} delay={i * 0.12}>
+                  <Link href={card.href} className="group block">
+                    <div
+                      className="relative aspect-[3/4] overflow-hidden mb-4"
+                      style={{ background: card.bg }}
+                    >
+                      {imageUrl ? (
+                        <Image
+                          src={imageUrl}
+                          alt={card.title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 50vw"
+                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-end p-6">
+                          <svg
+                            className="w-10 h-10 text-white/20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            aria-hidden
+                          >
+                            <path d="M12 2L14.4 9.2H22L16 13.8L18.4 21L12 16.4L5.6 21L8 13.8L2 9.2H9.6L12 2Z" />
+                          </svg>
+                        </div>
+                      )}
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                      {/* Alt gradient */}
+                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
+                      {/* Kart etiketi — görsel üzerinde */}
+                      <div className="absolute bottom-5 left-5">
+                        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/90">
+                          {card.title}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mb-1 text-[13px] font-medium text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
+                      {card.title}
+                    </p>
+                    <p className="text-[12px] text-[var(--text-muted)]">{card.sub}</p>
+                  </Link>
+                </FadeUp>
+              );
+            })}
           </div>
-        </FadeUp>
+        </div>
       </div>
     </section>
   );
+}
+
+// ─── Güven rozetleri ──────────────────────────────────────────────────────────
+
+function BadgeIcon({ icon }: { icon: "shipping" | "handmade" | "return" | "secure" }) {
+  if (icon === "shipping") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8 mx-auto mb-3">
+        <path d="M5 8h14M5 8a2 2 0 01-2-2V4M5 8l-1 12h16L19 8M19 8a2 2 0 002-2V4M9 14v4M15 14v4M3 4h18" />
+      </svg>
+    );
+  }
+  if (icon === "handmade") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8 mx-auto mb-3">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    );
+  }
+  if (icon === "return") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8 mx-auto mb-3">
+        <path d="M1 4v6h6M23 20v-6h-6" />
+        <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" />
+      </svg>
+    );
+  }
+  // secure
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="w-8 h-8 mx-auto mb-3">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0110 0v4" />
+    </svg>
+  );
+}
+
+export function TrustBadgesSection({ config }: { config?: TrustBadgesConfig }) {
+  const badges = (config ?? _DEF_TRUST).badges;
+
+  return (
+    <section className="bg-[var(--bg)] border-t border-[var(--border)] py-14">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {badges.map((b) => (
+            <div
+              key={b.title}
+              className="text-center text-[var(--text-muted)]"
+            >
+              <BadgeIcon icon={b.icon} />
+              <p className="mb-1 text-[11px] font-semibold tracking-[0.15em] uppercase text-[var(--text-primary)]">
+                {b.title}
+              </p>
+              <p className="text-[11px] text-[var(--text-muted)]">{b.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Bülten + Sosyal ─────────────────────────────────────────────────────────
+
+export function NewsletterSection({ config }: { config?: NewsletterConfig }) {
+  const c = config ?? _DEF_NEWSLETTER;
+
+  return (
+    <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)] py-14">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-center">
+          {/* Sol */}
+          <div>
+            <p className="mb-2 text-[13px] font-semibold tracking-[0.12em] uppercase text-[var(--text-primary)]">
+              {c.heading}
+            </p>
+            <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed">
+              {c.description}
+            </p>
+          </div>
+
+          {/* Orta — form */}
+          <form className="flex gap-0" onSubmit={(e) => e.preventDefault()}>
+            <input
+              type="email"
+              placeholder="E-posta adresiniz"
+              className="flex-1 h-11 border border-[var(--border)] bg-[var(--surface)] px-4 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-disabled)] outline-none focus:border-[var(--text-primary)] transition-colors"
+            />
+            <button
+              type="submit"
+              className="h-11 bg-[var(--text-primary)] px-6 text-[11px] font-medium tracking-[0.15em] uppercase text-[var(--surface)] hover:opacity-80 transition-opacity"
+            >
+              Kaydol
+            </button>
+          </form>
+
+          {/* Sağ — sosyal medya */}
+          <div className="md:text-right">
+            <p className="mb-3 text-[11px] font-semibold tracking-[0.15em] uppercase text-[var(--text-primary)]">
+              Bizi Takip Et
+            </p>
+            <div className="flex items-center gap-4 md:justify-end">
+              <a
+                href={c.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="5" />
+                  <circle
+                    cx="17.5"
+                    cy="6.5"
+                    r="1"
+                    fill="currentColor"
+                    stroke="none"
+                  />
+                </svg>
+              </a>
+              <a
+                href={c.pinterestUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Pinterest"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.236 2.636 7.855 6.356 9.312-.088-.791-.167-2.005.035-2.868.181-.78 1.172-4.97 1.172-4.97s-.299-.598-.299-1.482c0-1.388.806-2.428 1.808-2.428.853 0 1.268.64 1.268 1.408 0 .858-.546 2.14-.828 3.33-.236.995.499 1.806 1.476 1.806 1.772 0 3.137-1.868 3.137-4.563 0-2.386-1.716-4.053-4.165-4.053-2.837 0-4.502 2.128-4.502 4.327 0 .857.33 1.775.741 2.276a.3.3 0 01.069.283c-.076.315-.245.995-.278 1.134-.044.181-.145.219-.334.132-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.966-.527-2.292-1.148l-.623 2.378c-.226.869-.835 1.958-1.244 2.621.938.29 1.931.446 2.962.446 5.523 0 10-4.477 10-10S17.523 2 12 2z" />
+                </svg>
+              </a>
+              <a
+                href={c.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M22.54 6.42A2.78 2.78 0 0020.77 4.6C19.25 4.18 12 4.18 12 4.18s-7.24 0-8.77.42A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.77 1.82c1.53.42 8.77.42 8.77.42s7.24 0 8.77-.42a2.78 2.78 0 001.77-1.82A29 29 0 0023 12a29 29 0 00-.46-5.58z" />
+                  <polygon
+                    points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"
+                    fill="currentColor"
+                    stroke="none"
+                  />
+                </svg>
+              </a>
+              <a
+                href={`mailto:${c.email}`}
+                aria-label="E-posta"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M2 7l10 7 10-7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Geriye dönük uyumluluk ───────────────────────────────────────────────────
+
+export function HeroScene() {
+  return null;
+}
+export function MarqueeStrip() {
+  return null;
+}
+export function StatsSection() {
+  return null;
+}
+export function ProcessSection() {
+  return null;
+}
+export function WorkshopsSection({ workshops }: { workshops: HomeWorkshop[] }) {
+  return <AtolyeBizSection workshops={workshops} />;
+}
+
+export function StorySection() {
+  return null;
+}
+export function CertificatesSection({
+  certificates,
+}: {
+  certificates: HomeCertificate[];
+}) {
+  void certificates;
+  return null;
+}
+export function CTASection() {
+  return null;
 }

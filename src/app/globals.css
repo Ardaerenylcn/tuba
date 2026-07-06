@@ -35,25 +35,32 @@
   --color-warm-800:  #623f22;
   --color-warm-900:  #4a2f1a;
 
+  /* Tuba Atman — warm cream palette */
+  --cream-50:  #fdf9f4;
+  --cream-100: #f9f1e4;
+  --cream-200: #f2e4cc;
+  --cream-300: #e8d0ad;
+  --cream-900: #2c1810;
+
   /* Semantic tokens — storefront */
-  --bg:              var(--color-stone-50);
-  --bg-subtle:       var(--color-stone-100);
-  --bg-muted:        var(--color-stone-200);
-  --surface:         #ffffff;
-  --surface-raised:  #ffffff;
-  --border:          var(--color-stone-200);
-  --border-strong:   var(--color-stone-300);
-  --text-primary:    var(--color-stone-900);
-  --text-secondary:  var(--color-stone-600);
-  --text-muted:      var(--color-stone-400);
-  --text-disabled:   var(--color-stone-300);
-  --accent:          var(--color-warm-500);
-  --accent-hover:    var(--color-warm-600);
-  --accent-subtle:   var(--color-warm-50);
+  --bg:              #f5ede0;
+  --bg-subtle:       #ede4d4;
+  --bg-muted:        #e4d8c5;
+  --surface:         #faf4eb;
+  --surface-raised:  #fdf9f4;
+  --border:          #ddd0ba;
+  --border-strong:   #cfc0a5;
+  --text-primary:    #2c1810;
+  --text-secondary:  #5c3d28;
+  --text-muted:      #8c6e58;
+  --text-disabled:   #c4aa90;
+  --accent:          #2c1810;
+  --accent-hover:    #1a0e08;
+  --accent-subtle:   #f2e4cc;
 
   /* Typography */
   --font-sans:       var(--font-geist-sans), system-ui, sans-serif;
-  --font-serif:      Georgia, "Times New Roman", serif;
+  --font-serif:      var(--font-cormorant), Georgia, "Times New Roman", serif;
 
   /* Spacing scale */
   --space-px:   1px;
