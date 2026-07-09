@@ -19,7 +19,7 @@ const NAV_LINKS = [
       { href: "/koleksiyonlar/charmlar", label: "Charm'lar" },
     ],
   },
-  { href: "/atolyeler", label: "Atölye Biz" },
+  { href: "/programlar", label: "Atölye Biz" },
   { href: "/hakkimizda", label: "Hakkımızda" },
   { href: "/iletisim", label: "İletişim" },
 ];

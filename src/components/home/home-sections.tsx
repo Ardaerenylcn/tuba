@@ -521,7 +521,7 @@ export function AtolyeBizSection({
               {config.description}
             </p>
             <Link
-              href="/atolyeler"
+              href="/programlar"
               className="inline-flex items-center gap-1.5 text-[13px] text-[var(--text-primary)] underline underline-offset-4 hover:text-[var(--text-secondary)] transition-colors"
             >
               {config.linkText}
