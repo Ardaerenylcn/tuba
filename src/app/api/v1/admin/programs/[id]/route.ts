@@ -4,7 +4,7 @@ import { ok, badRequest, forbidden, notFound, serverError, handleZodError } from
 import { getSession } from "@/lib/auth-server";
 
 const patchSchema = z.object({
-  type: z.enum(["workshop", "certificate"]).optional(),
+  type: z.string().min(1).optional(),
   title: z.string().min(2).max(200).optional(),
   slug: z.string().min(2).max(200).regex(/^[a-z0-9-]+$/).optional(),
   shortDescription: z.string().min(10).max(500).optional(),

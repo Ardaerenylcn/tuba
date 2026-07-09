@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const programRoutes: MetadataRoute.Sitemap = programs.map((p) => ({
-    url: `${BASE}/${p.type === "workshop" ? "atolyeler" : "sertifikalar"}/${p.slug}`,
+    url: `${BASE}/${p.type}/${p.slug}`,
     lastModified: p.updatedAt,
     changeFrequency: "weekly",
     priority: 0.8,

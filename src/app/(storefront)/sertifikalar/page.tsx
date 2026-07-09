@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 async function getCertificates() {
   return db.program.findMany({
-    where: { type: "certificate", status: "published" },
+    where: { type: "sertifikalar", status: "published" },
     orderBy: { createdAt: "desc" },
     include: { coverImage: { select: { url: true } } },
   });

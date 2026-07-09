@@ -126,7 +126,7 @@ export default async function AdminSessionsPage({ searchParams }: Props) {
                       <td className="px-4 py-3">
                         <p className="font-medium text-[var(--text-primary)]">{s.program.title}</p>
                         <p className="text-xs text-[var(--text-muted)]">
-                          {s.program.type === "workshop" ? "Atölye" : "Sertifika"}
+                          {s.program.type}
                         </p>
                       </td>
                       <td className="px-4 py-3 text-[var(--text-secondary)]">

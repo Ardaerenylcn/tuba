@@ -7,27 +7,22 @@ import { ProgramGallery } from "@/components/storefront/program-gallery";
 import type { Metadata } from "next";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ programType: string; slug: string }>;
 }
 
-async function getProgram(slug: string) {
+async function getProgram(slug: string, type: string) {
   return db.program.findUnique({
-    where: { slug, status: "published", type: "sertifikalar" },
+    where: { slug, status: "published", type },
     include: {
       coverImage: { select: { url: true } },
       sessions: {
-        where: {
-          status: "published",
-          startAt: { gte: new Date() },
-        },
+        where: { status: "published", startAt: { gte: new Date() } },
         orderBy: { startAt: "asc" },
         include: {
           instructor: { select: { id: true, name: true } },
           _count: {
             select: {
-              reservations: {
-                where: { status: { in: ["pending", "confirmed"] } },
-              },
+              reservations: { where: { status: { in: ["pending", "confirmed"] } } },
             },
           },
         },
@@ -39,8 +34,8 @@ async function getProgram(slug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const program = await getProgram(slug);
+  const { slug, programType } = await params;
+  const program = await getProgram(slug, programType);
   if (!program) return {};
   const title = program.seoTitle ?? program.title;
   const description = program.seoDescription ?? program.shortDescription;
@@ -54,12 +49,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       ...(image ? { images: [{ url: image, width: 1200, height: 900 }] } : {}),
     },
-    twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title,
-      description,
-      ...(image ? { images: [image] } : {}),
-    },
   };
 }
 
@@ -70,11 +59,12 @@ const LEVEL_LABELS: Record<string, string> = {
   all_levels: "Her Seviye",
 };
 
-export default async function CertificateDetailPage({ params }: Props) {
-  const { slug } = await params;
-  const program = await getProgram(slug);
-
+export default async function DynamicProgramDetailPage({ params }: Props) {
+  const { slug, programType } = await params;
+  const program = await getProgram(slug, programType);
   if (!program) notFound();
+
+  const cat = await db.programCategory.findUnique({ where: { slug: programType } });
 
   const availableSessions = program.sessions.map((s) => ({
     ...s,
@@ -85,19 +75,18 @@ export default async function CertificateDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_360px]">
-        {/* Main content */}
         <div>
-          {/* Breadcrumb */}
           <nav className="mb-8 flex items-center gap-2 text-xs text-[var(--text-muted)]" aria-label="Breadcrumb">
-            <a href="/sertifikalar" className="hover:text-[var(--text-primary)]">Sertifika Programları</a>
+            <a href={`/${programType}`} className="hover:text-[var(--text-primary)]">
+              {cat?.name ?? programType}
+            </a>
             <span>/</span>
             <span className="text-[var(--text-secondary)]">{program.title}</span>
           </nav>
 
-          {/* Tags */}
           <div className="mb-4 flex items-center gap-3">
             <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--text-muted)]">
-              Sertifika
+              {cat?.name ?? programType}
             </span>
             {program.level && (
               <>
@@ -111,9 +100,7 @@ export default async function CertificateDetailPage({ params }: Props) {
               <>
                 <span className="text-[var(--border-strong)]">·</span>
                 <span className="text-[10px] tracking-[0.1em] text-[var(--text-muted)]">
-                  {program.durationMinutes < 60
-                    ? `${program.durationMinutes} dk`
-                    : `${Math.floor(program.durationMinutes / 60)} sa`}
+                  {program.durationMinutes < 60 ? `${program.durationMinutes} dk` : `${Math.floor(program.durationMinutes / 60)} sa`}
                 </span>
               </>
             )}
@@ -126,7 +113,6 @@ export default async function CertificateDetailPage({ params }: Props) {
             {program.shortDescription}
           </p>
 
-          {/* Cover image */}
           {program.coverImage?.url && (
             <div className="mb-12 aspect-[16/9] w-full overflow-hidden border border-[var(--border)] bg-[var(--bg-muted)]">
               <Image
@@ -141,49 +127,34 @@ export default async function CertificateDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* Description */}
           <div className="mb-12 prose-sm max-w-none text-[var(--text-secondary)] leading-relaxed">
-            {typeof program.description === "string"
-              ? program.description
-              : JSON.stringify(program.description)}
+            {typeof program.description === "string" ? program.description : JSON.stringify(program.description)}
           </div>
 
-          {/* Gallery */}
           <ProgramGallery urls={program.galleryImageIds} />
 
-          {/* Requirements */}
           {program.requirements.length > 0 && (
             <div className="mb-12">
-              <h2 className="mb-6 text-xl font-light text-[var(--text-primary)]">
-                Program İçeriği
-              </h2>
+              <h2 className="mb-6 text-xl font-light text-[var(--text-primary)]">Program İçeriği</h2>
               <ol className="flex flex-col gap-4">
                 {program.requirements.map((req, i) => (
                   <li key={req.id} className="flex gap-4 border-t border-[var(--border)] pt-4">
-                    <span className="mt-0.5 text-xs text-[var(--text-muted)] tabular-nums">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">{req.title}</p>
-                    </div>
+                    <span className="mt-0.5 text-xs text-[var(--text-muted)] tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{req.title}</p>
                   </li>
                 ))}
               </ol>
             </div>
           )}
 
-          {/* FAQ */}
           {program.faqs.length > 0 && (
             <div className="mb-12">
-              <h2 className="mb-6 text-xl font-light text-[var(--text-primary)]">
-                Sık Sorulan Sorular
-              </h2>
+              <h2 className="mb-6 text-xl font-light text-[var(--text-primary)]">Sık Sorulan Sorular</h2>
               <FAQAccordion items={program.faqs.map((f) => ({ q: f.question, a: f.answer }))} />
             </div>
           )}
         </div>
 
-        {/* Sidebar — session calendar */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="border border-[var(--border)] p-6">
             <div className="mb-5 flex items-baseline justify-between">
@@ -192,7 +163,6 @@ export default async function CertificateDetailPage({ params }: Props) {
               </span>
               <span className="text-xs text-[var(--text-muted)]">kişi başı</span>
             </div>
-
             {availableSessions.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-8 text-center">
                 <p className="text-sm text-[var(--text-muted)]">Şu an için açık oturum bulunmuyor.</p>

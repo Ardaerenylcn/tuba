@@ -100,7 +100,7 @@ model ProgramCategory {
 
 model Program {
   id               String        @id @default(cuid())
-  type             ProgramType
+  type             String
   categoryId       String?
   title            String
   slug             String        @unique
@@ -327,11 +327,6 @@ enum UserRole {
   admin
 }
 
-enum ProgramType {
-  workshop
-  certificate
-  masterclass
-}
 
 enum ProgramLevel {
   beginner

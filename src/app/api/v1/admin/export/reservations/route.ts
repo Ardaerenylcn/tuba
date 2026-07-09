@@ -30,7 +30,7 @@ export async function GET() {
         esc(r.customerEmail),
         esc(r.customerPhone),
         esc(r.session?.program?.title ?? ""),
-        esc(r.session?.program?.type === "workshop" ? "Atölye" : "Sertifika"),
+        esc(r.session?.program?.type ?? ""),
         esc(startAt ? startAt.toLocaleDateString("tr-TR") : ""),
         esc(startAt ? startAt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : ""),
         esc(r.participantCount),

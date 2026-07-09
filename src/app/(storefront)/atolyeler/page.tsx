@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 async function getWorkshops() {
   return db.program.findMany({
-    where: { type: "workshop", status: "published" },
+    where: { type: "atolyeler", status: "published" },
     orderBy: { createdAt: "desc" },
     include: { coverImage: { select: { url: true } } },
   });

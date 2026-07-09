@@ -4,7 +4,7 @@ import { ok, created, badRequest, forbidden, serverError, handleZodError } from 
 import { getSession } from "@/lib/auth-server";
 
 const programSchema = z.object({
-  type: z.enum(["workshop", "certificate"]),
+  type: z.string().min(1),
   categoryId: z.string().optional().nullable(),
   title: z.string().min(2).max(200),
   slug: z.string().min(2).max(200).regex(/^[a-z0-9-]+$/, "Slug yalnızca küçük harf, rakam ve tire içerebilir"),

@@ -29,7 +29,7 @@ export const DEFAULT_HERO_BANNER: HeroBannerConfig = {
 export async function getHomePageData() {
   const [workshopsRaw, certificatesRaw, categoriesRaw, heroBannerEntry] = await Promise.all([
     db.program.findMany({
-      where: { status: "published", type: "workshop" },
+      where: { status: "published", type: "atolyeler" },
       orderBy: { createdAt: "desc" },
       take: 6,
       include: {
@@ -43,7 +43,7 @@ export async function getHomePageData() {
       },
     }),
     db.program.findMany({
-      where: { status: "published", type: "certificate" },
+      where: { status: "published", type: "sertifikalar" },
       orderBy: { createdAt: "desc" },
       take: 3,
       include: {

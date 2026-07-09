@@ -36,7 +36,7 @@ async function ReservationPageContent({ sessionId }: { sessionId: string }) {
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
         <p className="text-sm text-[var(--text-muted)]">Bu oturumun kontenjanı dolmuş.</p>
         <a
-          href={`/${session.program.type === "workshop" ? "atolyeler" : "sertifikalar"}/${session.program.slug}`}
+          href={`/${session.program.type}/${session.program.slug}`}
           className="text-xs underline underline-offset-4 text-[var(--text-secondary)]"
         >
           Diğer tarihleri gör

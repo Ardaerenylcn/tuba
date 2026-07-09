@@ -81,8 +81,12 @@ async function getPrograms() {
 
 export default async function AdminProgramsPage() {
   const programs = await getPrograms();
-  const workshops = programs.filter((p) => p.type === "workshop");
-  const certificates = programs.filter((p) => p.type === "certificate");
+  // Tüm tipleri dinamik olarak grupla
+  const typeGroups = programs.reduce<Record<string, typeof programs>>((acc, p) => {
+    if (!acc[p.type]) acc[p.type] = [];
+    acc[p.type].push(p);
+    return acc;
+  }, {});
 
   return (
     <div className="flex flex-col gap-8">
@@ -99,21 +103,21 @@ export default async function AdminProgramsPage() {
         </Link>
       </div>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-[var(--text-primary)]">Atölyeler</h2>
-          <span className="text-xs text-[var(--text-muted)]">{workshops.length} program</span>
-        </div>
-        <ProgramTable programs={workshops} />
-      </section>
+      {Object.entries(typeGroups).map(([type, items]) => (
+        <section key={type} className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium text-[var(--text-primary)] capitalize">{type}</h2>
+            <span className="text-xs text-[var(--text-muted)]">{items.length} program</span>
+          </div>
+          <ProgramTable programs={items} />
+        </section>
+      ))}
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-[var(--text-primary)]">Sertifika Programları</h2>
-          <span className="text-xs text-[var(--text-muted)]">{certificates.length} program</span>
+      {programs.length === 0 && (
+        <div className="flex min-h-[200px] items-center justify-center border border-dashed border-[var(--border)]">
+          <p className="text-sm text-[var(--text-muted)]">Henüz program eklenmedi.</p>
         </div>
-        <ProgramTable programs={certificates} />
-      </section>
+      )}
     </div>
   );
 }

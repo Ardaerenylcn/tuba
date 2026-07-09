@@ -163,7 +163,7 @@ export function ProgramForm({ initial }: ProgramFormProps) {
   const isEdit = !!initial?.id;
 
   const [form, setForm] = useState({
-    type: initial?.type ?? "workshop",
+    type: initial?.type ?? "atolyeler",
     categoryId: initial?.categoryId ?? null as string | null,
     title: initial?.title ?? "",
     slug: initial?.slug ?? "",
@@ -264,82 +264,61 @@ export function ProgramForm({ initial }: ProgramFormProps) {
         {/* ── Sol panel ── */}
         <div className="flex flex-col gap-5 border border-[var(--border)] bg-[var(--surface)] p-6">
 
-          {/* Tür (tip) + Kategori — 2 kolon */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Program tipi */}
-            <div className="flex flex-col gap-2">
+          {/* Program Tipi — kategorilerden dinamik */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
               <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-                Program Tipi
+                Program Tipi *
               </label>
+              <a
+                href="/admin/turler"
+                target="_blank"
+                className="text-[11px] font-medium text-[var(--accent)] hover:underline"
+              >
+                + Yeni Tür Ekle →
+              </a>
+            </div>
+            {catLoading ? (
+              <div className="h-10 border border-[var(--border)] bg-[var(--bg-subtle)] animate-pulse" />
+            ) : categories.length === 0 ? (
+              <p className="text-[12px] text-[var(--text-muted)] border border-dashed border-[var(--border)] py-3 px-4">
+                Henüz tür eklenmedi. <a href="/admin/turler" target="_blank" className="underline">Buradan ekleyin →</a>
+              </p>
+            ) : (
               <div className="flex gap-2 flex-wrap">
-                {[
-                  { value: "workshop", label: "Atölye" },
-                  { value: "certificate", label: "Sertifika" },
-                  { value: "masterclass", label: "Masterclass" },
-                ].map((t) => (
+                {categories.map((cat) => (
                   <button
-                    key={t.value}
+                    key={cat.id}
                     type="button"
-                    onClick={() => set("type", t.value)}
+                    onClick={() => {
+                      setForm((prev) => ({ ...prev, type: cat.slug, categoryId: cat.id }));
+                    }}
                     className={`h-9 px-4 border text-[12px] font-medium tracking-[0.05em] transition-colors ${
-                      form.type === t.value
+                      form.type === cat.slug
                         ? "bg-[var(--text-primary)] text-[var(--surface)] border-[var(--text-primary)]"
                         : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
-                    {t.label}
+                    {cat.name}
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Seviye */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">Seviye</label>
-              <select
-                value={form.level}
-                onChange={(e) => set("level", e.target.value)}
-                className="h-10 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
-              >
-                <option value="all_levels">Her Seviye</option>
-                <option value="beginner">Başlangıç</option>
-                <option value="intermediate">Orta</option>
-                <option value="advanced">İleri</option>
-              </select>
-            </div>
+            )}
           </div>
 
-          {/* Kategori / Tür seçimi */}
+          {/* Seviye */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
-                Tür / Kategori
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowNewCat(true)}
-                className="text-[11px] font-medium text-[var(--accent)] hover:underline"
-              >
-                + Yeni Tür Ekle
-              </button>
-            </div>
-            {catLoading ? (
-              <div className="h-10 border border-[var(--border)] bg-[var(--bg-subtle)] animate-pulse" />
-            ) : (
-              <select
-                value={form.categoryId ?? ""}
-                onChange={(e) => set("categoryId", e.target.value || null)}
-                className="h-10 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
-              >
-                <option value="">— Seçiniz —</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            )}
-            <p className="text-[11px] text-[var(--text-muted)]">
-              Seçilen tür anasayfada ilgili bölümde gösterilir.
-            </p>
+            <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">Seviye</label>
+            <select
+              value={form.level}
+              onChange={(e) => set("level", e.target.value)}
+              className="h-10 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
+            >
+              <option value="all_levels">Her Seviye</option>
+              <option value="beginner">Başlangıç</option>
+              <option value="intermediate">Orta</option>
+              <option value="advanced">İleri</option>
+            </select>
           </div>
 
           {/* Başlık */}

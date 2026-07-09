@@ -174,8 +174,7 @@ function ReservationCard({
   index: number;
   muted?: boolean;
 }) {
-  const typeBase = r.session.program.type === "workshop" ? "atolyeler" : r.session.program.type === "masterclass" ? "masterclass" : "sertifikalar";
-  const href = `/${typeBase}/${r.session.program.slug}`;
+  const href = `/${r.session.program.type}/${r.session.program.slug}`;
 
   return (
     <motion.div
