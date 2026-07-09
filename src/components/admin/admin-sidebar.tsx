@@ -3,48 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-
-const NAV = [
-  {
-    id: "genel",
-    label: "Genel",
-    items: [
-      { href: "/admin/dashboard", label: "Dashboard" },
-    ],
-  },
-  {
-    id: "katalog",
-    label: "Katalog",
-    items: [
-      { href: "/admin/programlar", label: "Programlar" },
-      { href: "/admin/turler", label: "Kategoriler" },
-      { href: "/admin/oturumlar", label: "Oturumlar" },
-      { href: "/admin/galeri", label: "Galeri" },
-    ],
-  },
-  {
-    id: "satis",
-    label: "Satış",
-    items: [
-      { href: "/admin/rezervasyonlar", label: "Rezervasyonlar" },
-      { href: "/admin/musteriler", label: "Müşteriler" },
-      { href: "/admin/odemeler", label: "Ödemeler" },
-      { href: "/admin/indirim-kodlari", label: "İndirim Kodları" },
-    ],
-  },
-  {
-    id: "site",
-    label: "Site",
-    items: [
-      { href: "/admin/site", label: "Site İçeriği" },
-      { href: "/admin/banner", label: "Giriş Bannerı" },
-      { href: "/admin/medya", label: "Medya" },
-      { href: "/admin/kullanicilar", label: "Kullanıcılar" },
-      { href: "/admin/audit-log", label: "Audit Log" },
-      { href: "/admin/ayarlar", label: "Ayarlar" },
-    ],
-  },
-];
+import { ADMIN_NAV } from "./nav";
 
 function ChevronIcon({ className }: { className?: string }) {
   return (
@@ -57,16 +16,16 @@ function ChevronIcon({ className }: { className?: string }) {
 export function AdminSidebar() {
   const pathname = usePathname();
 
-  const activeGroupIds = NAV
+  const activeGroupIds = ADMIN_NAV
     .filter((g) => g.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/")))
     .map((g) => g.id);
 
   const [expanded, setExpanded] = useState<string[]>(
-    activeGroupIds.length > 0 ? activeGroupIds : [NAV[0].id]
+    activeGroupIds.length > 0 ? activeGroupIds : [ADMIN_NAV[0].id]
   );
 
   useEffect(() => {
-    const newActive = NAV
+    const newActive = ADMIN_NAV
       .filter((g) => g.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/")))
       .map((g) => g.id);
     if (newActive.length > 0) {
@@ -94,7 +53,7 @@ export function AdminSidebar() {
 
       {/* Nav */}
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3" aria-label="Admin menü">
-        {NAV.map((group) => {
+        {ADMIN_NAV.map((group) => {
           const isExpanded = expanded.includes(group.id);
           const hasActive = group.items.some(
             (item) => pathname === item.href || pathname.startsWith(item.href + "/")

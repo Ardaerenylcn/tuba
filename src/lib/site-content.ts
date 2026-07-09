@@ -52,6 +52,20 @@ export interface ContactConfig {
   sunday: string;
 }
 
+export interface CollectionItem {
+  slug: string;
+  label: string;
+  bg: string;
+  imageUrl: string | null;
+  imageId: string | null;
+}
+
+export interface CollectionsConfig {
+  heading: string;
+  description: string;
+  items: CollectionItem[];
+}
+
 export interface HakkimizdaConfig {
   heroImageUrl: string;
   heroImageId: string | null;
@@ -133,6 +147,18 @@ export const DEFAULT_CONTACT_INFO: ContactConfig = {
   sunday: "Kapalı",
 };
 
+export const DEFAULT_COLLECTIONS: CollectionsConfig = {
+  heading: "Koleksiyonlar",
+  description: "Zamansız tasarımlar, el işçiliğiyle hayat bulur.",
+  items: [
+    { slug: "kolyeler", label: "Kolyeler", bg: "#e2cdb5", imageUrl: null, imageId: null },
+    { slug: "yuzukler", label: "Yüzükler", bg: "#d6c9b4", imageUrl: null, imageId: null },
+    { slug: "kupeler", label: "Küpeler", bg: "#dfc8ae", imageUrl: null, imageId: null },
+    { slug: "bileklikler", label: "Bileklikler", bg: "#cfc5b6", imageUrl: null, imageId: null },
+    { slug: "charmlar", label: "Charm'lar", bg: "#d9d3c6", imageUrl: null, imageId: null },
+  ],
+};
+
 export const DEFAULT_HAKKIMIZDA: HakkimizdaConfig = {
   heroImageUrl: "/pic_01.jpeg",
   heroImageId: null,
@@ -179,6 +205,7 @@ export interface SiteContentMap {
   trust_badges: TrustBadgesConfig;
   newsletter: NewsletterConfig;
   contact_info: ContactConfig;
+  collections: CollectionsConfig;
 }
 
 const SITE_CONTENT_KEYS = [
@@ -187,6 +214,7 @@ const SITE_CONTENT_KEYS = [
   "trust_badges",
   "newsletter",
   "contact_info",
+  "collections",
 ] as const;
 
 export async function getHakkimizdaConfig(): Promise<HakkimizdaConfig> {
@@ -226,5 +254,18 @@ export async function getAllSiteContent(): Promise<SiteContentMap> {
     contact_info: map["contact_info"]
       ? { ...DEFAULT_CONTACT_INFO, ...(map["contact_info"] as Partial<ContactConfig>) }
       : DEFAULT_CONTACT_INFO,
+    collections: (() => {
+      const raw = map["collections"] as Partial<CollectionsConfig> | undefined;
+      if (!raw) return DEFAULT_COLLECTIONS;
+      return {
+        ...DEFAULT_COLLECTIONS,
+        ...raw,
+        items: (raw.items ?? DEFAULT_COLLECTIONS.items).map((item) => ({
+          ...item,
+          imageUrl: item.imageUrl ?? null,
+          imageId: item.imageId ?? null,
+        })),
+      };
+    })(),
   };
 }

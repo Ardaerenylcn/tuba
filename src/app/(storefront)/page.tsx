@@ -12,7 +12,7 @@ export default async function HomePage() {
     <>
       <HeroSection config={heroBanner} />
       <AtolyeBizSection workshops={workshops} categories={categories} atolyeBizConfig={siteContent.atolye_biz} />
-      <CollectionsSection />
+      <CollectionsSection config={siteContent.collections} />
       <TrustBadgesSection config={siteContent.trust_badges} />
       <NewsletterSection config={siteContent.newsletter} />
     </>

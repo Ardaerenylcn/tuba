@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import type { HomeWorkshop, HomeCertificate, HomeCategory, HeroBannerConfig } from "@/lib/home-content";
-import type { AtolyeBizConfig, TrustBadgesConfig, NewsletterConfig } from "@/lib/site-content";
+import type { AtolyeBizConfig, TrustBadgesConfig, NewsletterConfig, CollectionsConfig } from "@/lib/site-content";
 
 const _DEF_ATOLYE_BIZ: AtolyeBizConfig = {
   heading: "Atölye Biz", description: "Takı tasarımını keşfetmek, üretim süreçlerini öğrenmek ve kendi parçanı yaratmak için programlarımıza katılabilirsin.", linkText: "Tüm Programları İncele →",
@@ -195,11 +195,13 @@ function CollectionCard({
   slug,
   label,
   bg,
+  imageUrl = null,
   delay = 0,
 }: {
   slug: string;
   label: string;
   bg: string;
+  imageUrl?: string | null;
   delay?: number;
 }) {
   return (
@@ -214,6 +216,15 @@ function CollectionCard({
           className="relative aspect-[3/4] overflow-hidden mb-4"
           style={{ background: bg }}
         >
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              alt={label}
+              fill
+              sizes="(max-width: 640px) 100vw, 33vw"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+          )}
           {/* Dekoratif halka SVG */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <svg
@@ -257,7 +268,24 @@ function CollectionCard({
   );
 }
 
-export function CollectionsSection() {
+const _DEF_COLLECTIONS: CollectionsConfig = {
+  heading: "Koleksiyonlar",
+  description: "Zamansız tasarımlar, el işçiliğiyle hayat bulur.",
+  items: [
+    { slug: "kolyeler", label: "Kolyeler", bg: "#e2cdb5", imageUrl: null, imageId: null },
+    { slug: "yuzukler", label: "Yüzükler", bg: "#d6c9b4", imageUrl: null, imageId: null },
+    { slug: "kupeler", label: "Küpeler", bg: "#dfc8ae", imageUrl: null, imageId: null },
+    { slug: "bileklikler", label: "Bileklikler", bg: "#cfc5b6", imageUrl: null, imageId: null },
+    { slug: "charmlar", label: "Charm'lar", bg: "#d9d3c6", imageUrl: null, imageId: null },
+  ],
+};
+
+export function CollectionsSection({ config }: { config?: CollectionsConfig }) {
+  const cfg = config ?? _DEF_COLLECTIONS;
+  const topRow = cfg.items.slice(0, 2);
+  const bottomRow = cfg.items.slice(2);
+  const bottomCols = bottomRow.length === 1 ? "sm:grid-cols-1" : bottomRow.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3";
+
   return (
     <section style={{ background: "#f5ede0" }} className="py-20">
       {/* Üst yatay çizgi */}
@@ -277,50 +305,46 @@ export function CollectionsSection() {
             letterSpacing: "0.25em",
           }}
         >
-          Koleksiyonlar
+          {cfg.heading}
         </h2>
-        <p
-          className="mb-3 text-[20px]"
-          style={{ color: "#8b2e1a" }}
-          aria-hidden
-        >
-          ♥
-        </p>
-        <p
-          className="text-[13px] tracking-[0.04em] leading-relaxed"
-          style={{ color: "#2c1810", opacity: 0.6 }}
-        >
-          Zamansız tasarımlar, el işçiliğiyle hayat bulur.
+        <p className="mb-3 text-[20px]" style={{ color: "#8b2e1a" }} aria-hidden>♥</p>
+        <p className="text-[13px] tracking-[0.04em] leading-relaxed" style={{ color: "#2c1810", opacity: 0.6 }}>
+          {cfg.description}
         </p>
       </FadeUp>
 
       {/* Kart grid'i */}
       <div className="mx-auto max-w-7xl px-6 space-y-4">
-        {/* Üst satır — 2 büyük kart */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {COLLECTIONS_TOP.map((col, i) => (
-            <CollectionCard
-              key={col.slug}
-              slug={col.slug}
-              label={col.label}
-              bg={col.bg}
-              delay={i * 0.08}
-            />
-          ))}
-        </div>
-
-        {/* Alt satır — 3 orta kart */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {COLLECTIONS_BOTTOM.map((col, i) => (
-            <CollectionCard
-              key={col.slug}
-              slug={col.slug}
-              label={col.label}
-              bg={col.bg}
-              delay={0.16 + i * 0.08}
-            />
-          ))}
-        </div>
+        {/* Üst satır */}
+        {topRow.length > 0 && (
+          <div className={`grid grid-cols-1 gap-4 ${topRow.length === 1 ? "" : "sm:grid-cols-2"}`}>
+            {topRow.map((col, i) => (
+              <CollectionCard
+                key={col.slug}
+                slug={col.slug}
+                label={col.label}
+                bg={col.bg}
+                imageUrl={col.imageUrl}
+                delay={i * 0.08}
+              />
+            ))}
+          </div>
+        )}
+        {/* Alt satır */}
+        {bottomRow.length > 0 && (
+          <div className={`grid grid-cols-1 gap-4 ${bottomCols}`}>
+            {bottomRow.map((col, i) => (
+              <CollectionCard
+                key={col.slug}
+                slug={col.slug}
+                label={col.label}
+                bg={col.bg}
+                imageUrl={col.imageUrl}
+                delay={0.16 + i * 0.08}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Alt yatay çizgi */}

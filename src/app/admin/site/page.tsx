@@ -33,6 +33,11 @@ const SECTIONS = [
     label: "Hakkımızda Sayfası",
     desc: "Hero, alıntı, hikaye, istatistikler, değerler ve CTA bölümleri",
   },
+  {
+    href: "/admin/site/koleksiyonlar",
+    label: "Koleksiyonlar",
+    desc: "Anasayfadaki koleksiyon kartları — başlık, renk ve sıralama",
+  },
 ];
 
 export default function SitePage() {
