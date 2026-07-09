@@ -271,15 +271,26 @@ export function ProgramForm({ initial }: ProgramFormProps) {
               <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
                 Program Tipi
               </label>
-              <select
-                value={form.type}
-                onChange={(e) => set("type", e.target.value)}
-                className="h-10 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
-              >
-                <option value="workshop">Atölye</option>
-                <option value="certificate">Sertifika</option>
-                <option value="masterclass">Masterclass</option>
-              </select>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: "workshop", label: "Atölye" },
+                  { value: "certificate", label: "Sertifika" },
+                  { value: "masterclass", label: "Masterclass" },
+                ].map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => set("type", t.value)}
+                    className={`h-9 px-4 border text-[12px] font-medium tracking-[0.05em] transition-colors ${
+                      form.type === t.value
+                        ? "bg-[var(--text-primary)] text-[var(--surface)] border-[var(--text-primary)]"
+                        : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Seviye */}
