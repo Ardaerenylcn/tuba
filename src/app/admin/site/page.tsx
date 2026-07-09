@@ -38,6 +38,11 @@ const SECTIONS = [
     label: "Koleksiyonlar",
     desc: "Anasayfadaki koleksiyon kartları — başlık, renk ve sıralama",
   },
+  {
+    href: "/admin/site/sss",
+    label: "Sık Sorulan Sorular",
+    desc: "SSS sayfasındaki soru ve cevapları ekle, düzenle, sırala",
+  },
 ];
 
 export default function SitePage() {
