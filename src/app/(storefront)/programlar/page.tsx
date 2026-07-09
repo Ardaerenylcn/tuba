@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { ProgramCard } from "@/components/storefront/program-card";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -38,16 +39,24 @@ export default async function AllProgramsPage() {
   const catNameBySlug = Object.fromEntries(categories.map((c) => [c.slug, c.name]));
   const catOrder = categories.map((c) => c.slug);
 
-  const allTypes = [...new Set(programs.map((p) => p.type))];
-  const orderedTypes = [
-    ...catOrder.filter((s) => allTypes.includes(s)),
-    ...allTypes.filter((s) => !catOrder.includes(s)),
-  ];
+  // Yayında programı olan tipler
+  const publishedTypes = [...new Set(programs.map((p) => p.type))];
 
-  const typeGroups = orderedTypes.map((type) => ({
-    slug: type,
-    name: catNameBySlug[type] ?? deriveLabel(type),
-    programs: programs.filter((p) => p.type === type),
+  // showOnHome açık kategoriler (programsız olsa bile göster)
+  const showOnHomeExtra = catOrder.filter((s) => !publishedTypes.includes(s));
+
+  // Birleştir: önce publishedTypes (kategori sırasına göre), sonra showOnHome ekstralar
+  const orderedPublished = [
+    ...catOrder.filter((s) => publishedTypes.includes(s)),
+    ...publishedTypes.filter((s) => !catOrder.includes(s)),
+  ];
+  const allSlugs = [...orderedPublished, ...showOnHomeExtra];
+
+  const typeGroups = allSlugs.map((slug) => ({
+    slug,
+    name: catNameBySlug[slug] ?? deriveLabel(slug),
+    description: categories.find((c) => c.slug === slug)?.description ?? null,
+    programs: programs.filter((p) => p.type === slug),
   }));
 
   return (
@@ -70,17 +79,32 @@ export default async function AllProgramsPage() {
           {typeGroups.map((group) => (
             <section key={group.slug}>
               {/* Tip başlığı */}
-              <div className="mb-8 border-b border-[var(--border)] pb-3">
+              <div className="mb-8 flex items-center justify-between border-b border-[var(--border)] pb-3">
                 <p className="text-[10px] font-medium tracking-[0.3em] uppercase text-[var(--text-primary)]">
                   {group.name}
                 </p>
+                <Link
+                  href={`/${group.slug}`}
+                  className="text-[11px] text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Tümünü Gör →
+                </Link>
               </div>
-              {/* Program ızgarası */}
-              <div className="grid grid-cols-1 gap-px bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">
-                {group.programs.map((program) => (
-                  <ProgramCard key={program.id} program={program} />
-                ))}
-              </div>
+
+              {group.programs.length > 0 ? (
+                <div className="grid grid-cols-1 gap-px bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">
+                  {group.programs.map((program) => (
+                    <ProgramCard key={program.id} program={program} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex min-h-[180px] flex-col items-center justify-center gap-2 border border-dashed border-[var(--border)]">
+                  <p className="text-sm text-[var(--text-muted)]">Henüz yayınlanmış program bulunmuyor.</p>
+                  {group.description && (
+                    <p className="text-xs text-[var(--text-disabled)]">{group.description}</p>
+                  )}
+                </div>
+              )}
             </section>
           ))}
         </div>
