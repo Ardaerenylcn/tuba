@@ -278,6 +278,7 @@ export function ProgramForm({ initial }: ProgramFormProps) {
               >
                 <option value="workshop">Atölye</option>
                 <option value="certificate">Sertifika</option>
+                <option value="masterclass">Masterclass</option>
               </select>
             </div>
 

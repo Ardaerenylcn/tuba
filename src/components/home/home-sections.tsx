@@ -362,6 +362,7 @@ const BASE_BG = ["#2c1810", "#3d2010", "#1a1008", "#4a2418", "#2a1505"];
 const SLUG_HREF: Record<string, string> = {
   atolyeler: "/atolyeler",
   sertifikalar: "/sertifikalar",
+  masterclass: "/masterclass",
 };
 
 export function AtolyeBizSection({

@@ -330,6 +330,7 @@ enum UserRole {
 enum ProgramType {
   workshop
   certificate
+  masterclass
 }
 
 enum ProgramLevel {

@@ -12,6 +12,7 @@ const LEVEL_LABELS: Record<string, string> = {
 const TYPE_LABELS: Record<string, string> = {
   workshop: "Atölye",
   certificate: "Sertifika",
+  masterclass: "Masterclass",
 };
 
 interface ProgramCardProps {
@@ -21,7 +22,7 @@ interface ProgramCardProps {
 export function ProgramCard({ program }: ProgramCardProps) {
   return (
     <Link
-      href={`/${program.type === "workshop" ? "atolyeler" : "sertifikalar"}/${program.slug}`}
+      href={`/${program.type === "workshop" ? "atolyeler" : program.type === "masterclass" ? "masterclass" : "sertifikalar"}/${program.slug}`}
       className="group flex flex-col bg-[var(--surface)] p-8 transition-colors duration-[var(--duration-base)] hover:bg-[var(--bg-subtle)]"
     >
       {/* Type + Level */}
