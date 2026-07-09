@@ -7,45 +7,58 @@ interface Props {
   params: Promise<{ programType: string }>;
 }
 
-// Bu route sadece özel sayfası olmayan yeni tipler için çalışır.
-// /atolyeler, /sertifikalar, /masterclass kendi sayfalarına sahip,
-// onlar öncelikli olarak açılır.
+const TYPE_NAME_MAP: Record<string, string> = {
+  atolyeler: "Atölyeler",
+  sertifikalar: "Sertifikalar",
+  masterclass: "Masterclass",
+};
 
-async function getCategory(slug: string) {
-  return db.programCategory.findUnique({ where: { slug } });
+function deriveLabel(slug: string): string {
+  return TYPE_NAME_MAP[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+}
+
+async function getPageData(programType: string) {
+  const [cat, programs] = await Promise.all([
+    db.programCategory.findUnique({ where: { slug: programType } }),
+    db.program.findMany({
+      where: { type: programType, status: "published" },
+      orderBy: { createdAt: "desc" },
+      include: { coverImage: { select: { url: true } } },
+    }),
+  ]);
+  return { cat, programs };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { programType } = await params;
-  const cat = await getCategory(programType);
-  if (!cat) return {};
+  const { cat, programs } = await getPageData(programType);
+  const name = cat?.name ?? deriveLabel(programType);
+  if (!cat && programs.length === 0) return {};
   return {
-    title: `${cat.name} | Atölye Biz`,
-    description: cat.description ?? undefined,
+    title: `${name} | Atölye Biz`,
+    description: cat?.description ?? undefined,
   };
 }
 
 export default async function DynamicProgramTypePage({ params }: Props) {
   const { programType } = await params;
-  const cat = await getCategory(programType);
-  if (!cat) notFound();
+  const { cat, programs } = await getPageData(programType);
 
-  const programs = await db.program.findMany({
-    where: { type: programType, status: "published" },
-    orderBy: { createdAt: "desc" },
-    include: { coverImage: { select: { url: true } } },
-  });
+  // Hem kategori kaydı yok hem de yayında program yok → 404
+  if (!cat && programs.length === 0) notFound();
+
+  const name = cat?.name ?? deriveLabel(programType);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <div className="mb-16 max-w-xl">
         <p className="mb-4 text-xs font-medium tracking-[0.3em] uppercase text-[var(--text-muted)]">
-          {cat.name}
+          {name}
         </p>
         <h1 className="mb-4 text-4xl font-light tracking-tight text-[var(--text-primary)] sm:text-5xl">
-          {cat.name}
+          {name}
         </h1>
-        {cat.description && (
+        {cat?.description && (
           <p className="text-base leading-relaxed text-[var(--text-secondary)]">{cat.description}</p>
         )}
       </div>

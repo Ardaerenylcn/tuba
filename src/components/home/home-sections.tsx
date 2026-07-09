@@ -359,6 +359,60 @@ export function CollectionsSection({ config }: { config?: CollectionsConfig }) {
 
 const BASE_BG = ["#2c1810", "#3d2010", "#1a1008", "#4a2418", "#2a1505"];
 
+function slugToLabel(slug: string): string {
+  const MAP: Record<string, string> = {
+    atolyeler: "Atölyeler",
+    sertifikalar: "Sertifikalar",
+    masterclass: "Masterclass",
+  };
+  return MAP[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+}
+
+function AtolyeBizProgramCard({
+  program,
+  typeName,
+  bg,
+}: {
+  program: HomeWorkshop;
+  typeName: string;
+  bg: string;
+}) {
+  return (
+    <Link href={`/${program.type}/${program.slug}`} className="group block">
+      {/* Üstte tip etiketi */}
+      <p className="mb-2.5 text-[9px] font-medium tracking-[0.3em] uppercase text-[var(--text-muted)]">
+        {typeName}
+      </p>
+      {/* Görsel */}
+      <div className="relative aspect-[3/4] overflow-hidden mb-3" style={{ background: bg }}>
+        {program.coverImage?.url ? (
+          <Image
+            src={program.coverImage.url}
+            alt={program.title}
+            fill
+            sizes="(max-width: 640px) 100vw, 33vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-end p-5">
+            <svg className="w-8 h-8 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden>
+              <path d="M12 2L14.4 9.2H22L16 13.8L18.4 21L12 16.4L5.6 21L8 13.8L2 9.2H9.6L12 2Z" />
+            </svg>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+      </div>
+      {/* Altta program adı */}
+      <p className="text-[13px] font-medium leading-snug text-[var(--text-primary)] transition-colors group-hover:text-[var(--text-secondary)]">
+        {program.title}
+      </p>
+      <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+        {Number(program.basePrice).toLocaleString("tr-TR")} ₺
+      </p>
+    </Link>
+  );
+}
+
 export function AtolyeBizSection({
   workshops,
   categories = [],
@@ -370,6 +424,76 @@ export function AtolyeBizSection({
 }) {
   const config = atolyeBizConfig ?? _DEF_ATOLYE_BIZ;
 
+  // Kategori isimlerini slug'a göre map'le
+  const catNameBySlug = Object.fromEntries(categories.map((c) => [c.slug, c.name]));
+
+  // Yayında program varsa program kartları göster; yoksa tip kartları göster
+  if (workshops.length > 0) {
+    // Tipleri kategori sırasına göre sırala, sonra geri kalanlar
+    const catOrder = categories.map((c) => c.slug);
+    const allTypes = [...new Set(workshops.map((w) => w.type))];
+    const orderedTypes = [
+      ...catOrder.filter((s) => allTypes.includes(s)),
+      ...allTypes.filter((s) => !catOrder.includes(s)),
+    ];
+
+    const typeGroups = orderedTypes.map((type, gi) => ({
+      slug: type,
+      name: catNameBySlug[type] ?? slugToLabel(type),
+      programs: workshops.filter((w) => w.type === type),
+      bg: BASE_BG[gi % BASE_BG.length],
+    }));
+
+    return (
+      <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)] py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          {/* Bölüm başlığı */}
+          <FadeUp className="mb-14 max-w-xl">
+            <h2
+              className="mb-3 text-[32px] leading-tight tracking-tight text-[var(--text-primary)]"
+              style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 700, textTransform: "uppercase" }}
+            >
+              {config.heading}
+            </h2>
+            <p className="mb-4 text-[var(--text-muted)] text-lg">♥</p>
+            <p className="text-[14px] leading-relaxed text-[var(--text-secondary)]">
+              {config.description}
+            </p>
+          </FadeUp>
+
+          {/* Tip grupları */}
+          <div className="flex flex-col gap-16">
+            {typeGroups.map((group) => (
+              <div key={group.slug}>
+                {/* Grup başlığı */}
+                <div className="mb-6 flex items-center justify-between border-b border-[var(--border)] pb-3">
+                  <p className="text-[10px] font-medium tracking-[0.3em] uppercase text-[var(--text-primary)]">
+                    {group.name}
+                  </p>
+                  <Link
+                    href={`/${group.slug}`}
+                    className="text-[11px] text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    Tümünü Gör →
+                  </Link>
+                </div>
+                {/* Program kartları */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.programs.slice(0, 3).map((program, i) => (
+                    <FadeUp key={program.id} delay={i * 0.1}>
+                      <AtolyeBizProgramCard program={program} typeName={group.name} bg={group.bg} />
+                    </FadeUp>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Yayında program yok — tip kartlarını göster (fallback)
   const cards = categories.map((cat, i) => ({
     id: cat.id,
     title: cat.name,
@@ -385,15 +509,10 @@ export function AtolyeBizSection({
     <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)] py-20">
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 items-start">
-          {/* Sol metin */}
           <FadeUp className="lg:sticky lg:top-28">
             <h2
               className="mb-3 text-[32px] leading-tight tracking-tight text-[var(--text-primary)]"
-              style={{
-                fontFamily: "var(--font-cormorant), Georgia, serif",
-                fontWeight: 700,
-                textTransform: "uppercase",
-              }}
+              style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 700, textTransform: "uppercase" }}
             >
               {config.heading}
             </h2>
@@ -409,59 +528,24 @@ export function AtolyeBizSection({
             </Link>
           </FadeUp>
 
-          {/* Program tipi kartları */}
           <div className={`grid grid-cols-1 gap-6 ${colsCls}`}>
-            {cards.map((card, i) => {
-              const featured = workshops.find((w) => w.type === card.slug);
-              const imageUrl = featured?.coverImage?.url ?? null;
-              return (
-                <FadeUp key={card.id} delay={i * 0.12}>
-                  <Link href={card.href} className="group block">
-                    <div
-                      className="relative aspect-[3/4] overflow-hidden mb-4"
-                      style={{ background: card.bg }}
-                    >
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={card.title}
-                          fill
-                          sizes="(max-width: 640px) 100vw, 50vw"
-                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-end p-6">
-                          <svg
-                            className="w-10 h-10 text-white/20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1"
-                            aria-hidden
-                          >
-                            <path d="M12 2L14.4 9.2H22L16 13.8L18.4 21L12 16.4L5.6 21L8 13.8L2 9.2H9.6L12 2Z" />
-                          </svg>
-                        </div>
-                      )}
-                      {/* Hover overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                      {/* Alt gradient */}
-                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
-                      {/* Kart etiketi — görsel üzerinde */}
-                      <div className="absolute bottom-5 left-5">
-                        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/90">
-                          {card.title}
-                        </p>
-                      </div>
+            {cards.map((card, i) => (
+              <FadeUp key={card.id} delay={i * 0.12}>
+                <Link href={card.href} className="group block">
+                  <div className="relative aspect-[3/4] overflow-hidden mb-4" style={{ background: card.bg }}>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
+                    <div className="absolute bottom-5 left-5">
+                      <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/90">{card.title}</p>
                     </div>
-                    <p className="mb-1 text-[13px] font-medium text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
-                      {card.title}
-                    </p>
-                    <p className="text-[12px] text-[var(--text-muted)]">{card.sub}</p>
-                  </Link>
-                </FadeUp>
-              );
-            })}
+                  </div>
+                  <p className="mb-1 text-[13px] font-medium text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    {card.title}
+                  </p>
+                  <p className="text-[12px] text-[var(--text-muted)]">{card.sub}</p>
+                </Link>
+              </FadeUp>
+            ))}
           </div>
         </div>
       </div>
