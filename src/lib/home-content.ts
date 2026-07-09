@@ -26,75 +26,105 @@ export const DEFAULT_HERO_BANNER: HeroBannerConfig = {
   btn2Href: "/iletisim",
 };
 
+// Türkçe isim fallback'leri — kategori kaydı yoksa type slug'ından türetilir
+const TYPE_NAME_FALLBACKS: Record<string, string> = {
+  atolyeler: "Atölyeler",
+  sertifikalar: "Sertifikalar",
+  masterclass: "Masterclass",
+};
+
+function typeLabel(slug: string): string {
+  return TYPE_NAME_FALLBACKS[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+}
+
 export async function getHomePageData() {
-  const [workshopsRaw, certificatesRaw, categoriesRaw, heroBannerEntry] = await Promise.all([
+  const [publishedTypes, workshopsRaw, categoriesRaw, heroBannerEntry] = await Promise.all([
+    // Yayındaki tüm program tiplerini bul
     db.program.findMany({
-      where: { status: "published", type: "atolyeler" },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      include: {
-        coverImage: { select: { url: true } },
-        sessions: {
-          where: { status: "published", startAt: { gte: new Date() } },
-          orderBy: { startAt: "asc" },
-          take: 1,
-          select: { startAt: true, priceOverride: true },
-        },
-      },
+      where: { status: "published" },
+      select: { type: true },
+      distinct: ["type"],
     }),
+    // Kategori kartlarında kapak resmi göstermek için yayındaki programlar
     db.program.findMany({
-      where: { status: "published", type: "sertifikalar" },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-      include: {
+      where: { status: "published" },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        type: true,
+        basePrice: true,
         coverImage: { select: { url: true } },
-        sessions: {
-          where: { status: "published", startAt: { gte: new Date() } },
-          orderBy: { startAt: "asc" },
-          take: 1,
-          select: { startAt: true },
-        },
       },
+      orderBy: { createdAt: "desc" },
     }),
+    // Admin'den oluşturulmuş kategori kayıtları (isim/açıklama/görsel için)
     db.programCategory.findMany({
-      where: { showOnHome: true, isActive: true },
+      where: { isActive: true },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-      include: { _count: { select: { programs: true } } },
     }),
     db.siteContent.findUnique({
       where: { key_locale: { key: "hero_banner", locale: "tr" } },
     }),
   ]);
 
-  const workshops = workshopsRaw.map((w) => ({
-    ...w,
-    basePrice: Number(w.basePrice),
-    sessions: w.sessions.map((s) => ({
-      startAt: s.startAt,
-      priceOverride: s.priceOverride != null ? Number(s.priceOverride) : null,
-    })),
-  }));
-
-  const certificates = certificatesRaw.map((c) => ({
-    ...c,
-    basePrice: Number(c.basePrice),
-    sessions: c.sessions.map((s) => ({ startAt: s.startAt })),
-  }));
-
   const heroBanner: HeroBannerConfig = heroBannerEntry?.value
     ? { ...DEFAULT_HERO_BANNER, ...(heroBannerEntry.value as Partial<HeroBannerConfig>) }
     : DEFAULT_HERO_BANNER;
 
-  // DB'de hiç kategori yoksa varsayılan 2 kategori göster (admin'den henüz eklenmemişse)
-  const DEFAULT_CATEGORIES = [
-    { id: "_atolyeler", name: "Atölyeler", slug: "atolyeler", description: "El yapımı takı atölyeleri", sortOrder: 0, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
-    { id: "_sertifikalar", name: "Sertifikalar", slug: "sertifikalar", description: "Sertifika programları", sortOrder: 1, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
-  ];
-  const categories = categoriesRaw.length > 0 ? categoriesRaw : DEFAULT_CATEGORIES;
+  // Kategori kayıtlarını slug'a göre map'le
+  const catBySlug = Object.fromEntries(categoriesRaw.map((c) => [c.slug, c]));
 
-  return { workshops, certificates, categories, heroBanner };
+  // Yayındaki her tip için kart verisi oluştur
+  // Sıralama: önce sortOrder'ı olan kategoriler, sonra geri kalanlar
+  const publishedSlugs = publishedTypes.map((p) => p.type);
+
+  // Hem yayındaki tiplerden hem de showOnHome kategorilerden birleştir
+  const showOnHomeSlugs = categoriesRaw
+    .filter((c) => c.showOnHome)
+    .map((c) => c.slug)
+    .filter((s) => !publishedSlugs.includes(s));
+
+  const allSlugs = [...publishedSlugs, ...showOnHomeSlugs];
+
+  // Sırala: sortOrder'ı olan kategoriler önce
+  allSlugs.sort((a, b) => {
+    const catA = catBySlug[a];
+    const catB = catBySlug[b];
+    if (catA && catB) return catA.sortOrder - catB.sortOrder;
+    if (catA) return -1;
+    if (catB) return 1;
+    return 0;
+  });
+
+  const categories = allSlugs.map((slug) => {
+    const cat = catBySlug[slug];
+    return {
+      id: cat?.id ?? `_${slug}`,
+      name: cat?.name ?? typeLabel(slug),
+      slug,
+      description: cat?.description ?? null,
+      sortOrder: cat?.sortOrder ?? 99,
+      showOnHome: cat?.showOnHome ?? true,
+      isActive: true,
+      createdAt: cat?.createdAt ?? new Date(),
+      updatedAt: cat?.updatedAt ?? new Date(),
+      _count: { programs: 0 },
+    };
+  });
+
+  // Fallback: hiç yayında program ve hiç showOnHome kategori yoksa varsayılan 2 kart
+  const finalCategories =
+    categories.length > 0
+      ? categories
+      : [
+          { id: "_atolyeler", name: "Atölyeler", slug: "atolyeler", description: "El yapımı takı atölyeleri", sortOrder: 0, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
+          { id: "_sertifikalar", name: "Sertifikalar", slug: "sertifikalar", description: "Sertifika programları", sortOrder: 1, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
+        ];
+
+  return { categories: finalCategories, heroBanner, workshops: workshopsRaw };
 }
 
-export type HomeWorkshop = Awaited<ReturnType<typeof getHomePageData>>["workshops"][number];
-export type HomeCertificate = Awaited<ReturnType<typeof getHomePageData>>["certificates"][number];
 export type HomeCategory = Awaited<ReturnType<typeof getHomePageData>>["categories"][number];
+export type HomeWorkshop = Awaited<ReturnType<typeof getHomePageData>>["workshops"][number];
+export type HomeCertificate = HomeWorkshop;
