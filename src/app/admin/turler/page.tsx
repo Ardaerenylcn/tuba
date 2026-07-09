@@ -192,9 +192,9 @@ export default function TurlerPage() {
       {/* Başlık */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-[var(--text-primary)]">Program Türleri</h1>
+          <h1 className="text-lg font-semibold text-[var(--text-primary)]">Kategoriler</h1>
           <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-            Anasayfada gösterilecek program türlerini yönetin.
+            Anasayfadaki tüm kategori kartlarını buradan yönetin.
           </p>
         </div>
         {!showCreate && (

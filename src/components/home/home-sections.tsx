@@ -335,6 +335,11 @@ export function CollectionsSection() {
 
 const BASE_BG = ["#2c1810", "#3d2010", "#1a1008", "#4a2418", "#2a1505"];
 
+const SLUG_HREF: Record<string, string> = {
+  atolyeler: "/atolyeler",
+  sertifikalar: "/sertifikalar",
+};
+
 export function AtolyeBizSection({
   workshops,
   categories = [],
@@ -346,22 +351,15 @@ export function AtolyeBizSection({
 }) {
   const config = atolyeBizConfig ?? _DEF_ATOLYE_BIZ;
 
-  const baseCards = [
-    { id: "atolyeler", title: config.workshops.title, sub: config.workshops.sub, href: "/atolyeler", bg: BASE_BG[0], type: "workshop" as const, configImageUrl: config.workshops.imageUrl },
-    { id: "sertifikalar", title: config.certificates.title, sub: config.certificates.sub, href: "/sertifikalar", bg: BASE_BG[1], type: "certificate" as const, configImageUrl: config.certificates.imageUrl },
-  ];
-
-  const extraCards = categories.map((cat, i) => ({
+  const cards = categories.map((cat, i) => ({
     id: cat.id,
     title: cat.name,
     sub: cat.description ?? null,
-    href: "/atolyeler",
-    bg: BASE_BG[(i + 2) % BASE_BG.length],
-    type: null as null,
-    configImageUrl: null as null,
+    href: SLUG_HREF[cat.slug] ?? "/atolyeler",
+    bg: BASE_BG[i % BASE_BG.length],
+    slug: cat.slug,
   }));
 
-  const cards = [...baseCards, ...extraCards];
   const colsCls = cards.length <= 2 ? "sm:grid-cols-2" : cards.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4";
 
   return (
@@ -395,8 +393,8 @@ export function AtolyeBizSection({
           {/* Program tipi kartları */}
           <div className={`grid grid-cols-1 gap-6 ${colsCls}`}>
             {cards.map((card, i) => {
-              const featured = card.type ? workshops.find((w) => w.type === card.type) : null;
-              const imageUrl = card.configImageUrl ?? featured?.coverImage?.url ?? null;
+              const featured = workshops.find((w) => w.type === card.slug);
+              const imageUrl = featured?.coverImage?.url ?? null;
               return (
                 <FadeUp key={card.id} delay={i * 0.12}>
                   <Link href={card.href} className="group block">

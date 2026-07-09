@@ -85,7 +85,14 @@ export async function getHomePageData() {
     ? { ...DEFAULT_HERO_BANNER, ...(heroBannerEntry.value as Partial<HeroBannerConfig>) }
     : DEFAULT_HERO_BANNER;
 
-  return { workshops, certificates, categories: categoriesRaw, heroBanner };
+  // DB'de hiç kategori yoksa varsayılan 2 kategori göster (admin'den henüz eklenmemişse)
+  const DEFAULT_CATEGORIES = [
+    { id: "_atolyeler", name: "Atölyeler", slug: "atolyeler", description: "El yapımı takı atölyeleri", sortOrder: 0, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
+    { id: "_sertifikalar", name: "Sertifikalar", slug: "sertifikalar", description: "Sertifika programları", sortOrder: 1, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
+  ];
+  const categories = categoriesRaw.length > 0 ? categoriesRaw : DEFAULT_CATEGORIES;
+
+  return { workshops, certificates, categories, heroBanner };
 }
 
 export type HomeWorkshop = Awaited<ReturnType<typeof getHomePageData>>["workshops"][number];
