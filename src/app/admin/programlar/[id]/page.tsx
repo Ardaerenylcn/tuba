@@ -57,6 +57,7 @@ export default async function EditProgramPage({ params }: { params: Promise<{ id
           title: program.title,
           slug: program.slug,
           shortDescription: program.shortDescription,
+          description: (program.description as import("@tiptap/react").JSONContent | null) ?? null,
           basePrice: Number(program.basePrice),
           currency: program.currency,
           defaultCapacity: program.defaultCapacity ?? undefined,

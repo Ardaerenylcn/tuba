@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CoverImagePicker } from "@/components/admin/cover-image-picker";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import type { JSONContent } from "@tiptap/react";
 
 interface Category {
   id: string;
@@ -19,6 +21,7 @@ interface ProgramFormProps {
     title?: string;
     slug?: string;
     shortDescription?: string;
+    description?: JSONContent | null;
     basePrice?: number;
     currency?: string;
     defaultCapacity?: number;
@@ -181,6 +184,10 @@ export function ProgramForm({ initial }: ProgramFormProps) {
     coverImagePosition: initial?.coverImagePosition ?? "center center",
   });
 
+  const [description, setDescription] = useState<JSONContent>(
+    (initial?.description as JSONContent | null | undefined) ?? { type: "doc", content: [] }
+  );
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [catLoading, setCatLoading] = useState(true);
   const [showNewCat, setShowNewCat] = useState(false);
@@ -224,7 +231,7 @@ export function ProgramForm({ initial }: ProgramFormProps) {
     const { coverImageUrl: _url, ...rest } = form;
     const payload = {
       ...rest,
-      description: { type: "doc", content: [] },
+      description,
       seoTitle: form.seoTitle || undefined,
       seoDescription: form.seoDescription || undefined,
       coverImageId: form.coverImageId ?? null,
@@ -362,6 +369,17 @@ export function ProgramForm({ initial }: ProgramFormProps) {
               onChange={(e) => set("shortDescription", e.target.value)}
               className="border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)] resize-none"
               placeholder="Program hakkında kısa bir açıklama (en az 10 karakter)..."
+            />
+          </div>
+
+          {/* Uzun açıklama — rich text */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">Açıklama</label>
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Detaylı program açıklaması yazın..."
+              minHeight={220}
             />
           </div>
 

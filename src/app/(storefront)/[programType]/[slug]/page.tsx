@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { SessionCalendar } from "@/components/storefront/session-calendar";
 import { FAQAccordion } from "@/components/storefront/faq-accordion";
 import { ProgramGallery } from "@/components/storefront/program-gallery";
+import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
 import type { Metadata } from "next";
 
 interface Props {
@@ -127,9 +128,7 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
             </div>
           )}
 
-          <div className="mb-12 prose-sm max-w-none text-[var(--text-secondary)] leading-relaxed">
-            {typeof program.description === "string" ? program.description : JSON.stringify(program.description)}
-          </div>
+          <RichTextRenderer content={program.description} className="mb-12" />
 
           <ProgramGallery urls={program.galleryImageIds} />
 
