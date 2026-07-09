@@ -359,12 +359,6 @@ export function CollectionsSection({ config }: { config?: CollectionsConfig }) {
 
 const BASE_BG = ["#2c1810", "#3d2010", "#1a1008", "#4a2418", "#2a1505"];
 
-const SLUG_HREF: Record<string, string> = {
-  atolyeler: "/atolyeler",
-  sertifikalar: "/sertifikalar",
-  masterclass: "/masterclass",
-};
-
 export function AtolyeBizSection({
   workshops,
   categories = [],
@@ -380,7 +374,7 @@ export function AtolyeBizSection({
     id: cat.id,
     title: cat.name,
     sub: cat.description ?? null,
-    href: SLUG_HREF[cat.slug] ?? "/atolyeler",
+    href: `/${cat.slug}`,
     bg: BASE_BG[i % BASE_BG.length],
     slug: cat.slug,
   }));
