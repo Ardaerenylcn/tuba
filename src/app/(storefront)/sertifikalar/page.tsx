@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 async function getCertificates() {
   return db.program.findMany({
     where: { type: "sertifikalar", status: "published" },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     include: { coverImage: { select: { url: true } } },
   });
 }

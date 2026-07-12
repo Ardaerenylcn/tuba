@@ -151,6 +151,39 @@ export default function TurlerPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
+
+  async function persistOrder(ordered: Category[]) {
+    setReorderError(null);
+    try {
+      const res = await fetch("/api/v1/admin/categories/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: ordered.map((c) => c.id) }),
+      });
+      const data = await res.json();
+      if (!data.success) setReorderError(data.message ?? "Sıralama kaydedilemedi.");
+    } catch {
+      setReorderError("Sıralama kaydedilemedi.");
+    }
+  }
+
+  function handleDrop(dropIndex: number) {
+    if (dragIndex === null || dragIndex === dropIndex) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    const next = [...categories];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(dropIndex, 0, moved);
+    setCategories(next);
+    setDragIndex(null);
+    setOverIndex(null);
+    persistOrder(next);
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -194,7 +227,7 @@ export default function TurlerPage() {
         <div>
           <h1 className="text-lg font-semibold text-[var(--text-primary)]">Kategoriler</h1>
           <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-            Anasayfadaki tüm kategori kartlarını buradan yönetin.
+            Anasayfadaki tüm kategori kartlarını buradan yönetin. Sürükleyerek sıralayın.
           </p>
         </div>
         {!showCreate && (
@@ -231,7 +264,8 @@ export default function TurlerPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {categories.map((cat) =>
+          {reorderError && <p className="text-xs text-red-600">{reorderError}</p>}
+          {categories.map((cat, i) =>
             editId === cat.id ? (
               <CategoryForm
                 key={cat.id}
@@ -242,8 +276,46 @@ export default function TurlerPage() {
             ) : (
               <div
                 key={cat.id}
-                className="flex items-center gap-4 border border-[var(--border)] bg-[var(--surface)] px-5 py-4"
+                draggable
+                onDragStart={(e) => {
+                  setDragIndex(i);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (overIndex !== i) setOverIndex(i);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(i);
+                }}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setOverIndex(null);
+                }}
+                className={`flex items-center gap-4 border bg-[var(--surface)] px-5 py-4 transition-colors ${
+                  dragIndex === i ? "opacity-40" : ""
+                } ${
+                  overIndex === i && dragIndex !== i
+                    ? "border-[var(--text-primary)]/40 bg-[var(--bg-subtle)]"
+                    : "border-[var(--border)]"
+                }`}
               >
+                <span
+                  className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] select-none shrink-0"
+                  title="Sürükleyerek sırala"
+                  aria-hidden
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <circle cx="7" cy="5" r="1.4" />
+                    <circle cx="13" cy="5" r="1.4" />
+                    <circle cx="7" cy="10" r="1.4" />
+                    <circle cx="13" cy="10" r="1.4" />
+                    <circle cx="7" cy="15" r="1.4" />
+                    <circle cx="13" cy="15" r="1.4" />
+                  </svg>
+                </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-sm text-[var(--text-primary)]">{cat.name}</p>

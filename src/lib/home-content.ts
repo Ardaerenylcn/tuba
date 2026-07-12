@@ -56,7 +56,7 @@ export async function getHomePageData() {
         basePrice: true,
         coverImage: { select: { url: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     }),
     // Tüm kategori kayıtları — aktif/pasif ayrımı burada yapılacak
     db.programCategory.findMany({

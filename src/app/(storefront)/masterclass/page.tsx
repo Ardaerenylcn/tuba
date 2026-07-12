@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 async function getMasterclasses() {
   return db.program.findMany({
     where: { type: "masterclass", status: "published" },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     include: { coverImage: { select: { url: true } } },
   });
 }

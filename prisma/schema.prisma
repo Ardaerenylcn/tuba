@@ -115,6 +115,7 @@ model Program {
   durationMinutes  Int?
   level            ProgramLevel?
   status           ContentStatus @default(draft)
+  sortOrder        Int           @default(0)
   seoTitle         String?
   seoDescription   String?
   createdAt        DateTime      @default(now())

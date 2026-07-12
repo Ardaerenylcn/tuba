@@ -22,7 +22,7 @@ async function getAllPrograms() {
   const [programs, categories] = await Promise.all([
     db.program.findMany({
       where: { status: "published" },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       include: { coverImage: { select: { url: true } } },
     }),
     db.programCategory.findMany({

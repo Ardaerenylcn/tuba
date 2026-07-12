@@ -185,12 +185,12 @@ export function HeroSection({ config }: { config: HeroBannerConfig }) {
       className="bg-[#1c0f08] border-b border-white/5"
     >
       <div className="mx-auto max-w-7xl px-6">
-        <div className="flex flex-wrap items-stretch divide-x divide-white/10">
+        <div className="grid grid-cols-2 gap-px bg-white/10 md:grid-cols-4">
 
           {/* Konum → /hakkimizda */}
           <Link
             href="/hakkimizda"
-            className="group flex items-center gap-3 py-4 pr-8 transition-colors hover:text-white"
+            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
@@ -207,7 +207,7 @@ export function HeroSection({ config }: { config: HeroBannerConfig }) {
           {/* 15+ Yıl → /blog (yakında) */}
           <Link
             href="/blog"
-            className="group flex items-center gap-3 px-8 py-4 transition-colors hover:text-white"
+            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
               <circle cx="12" cy="8" r="4"/>
@@ -224,7 +224,7 @@ export function HeroSection({ config }: { config: HeroBannerConfig }) {
           {/* Küçük Gruplar → /programlar */}
           <Link
             href="/programlar"
-            className="group flex items-center gap-3 px-8 py-4 transition-colors hover:text-white"
+            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
               <circle cx="9" cy="7" r="3"/>
@@ -244,7 +244,7 @@ export function HeroSection({ config }: { config: HeroBannerConfig }) {
           {/* El Yapımı Üretim → /hakkimizda */}
           <Link
             href="/hakkimizda"
-            className="group flex items-center gap-3 px-8 py-4 transition-colors hover:text-white"
+            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
               <path d="M18 11V6l-2-3H8L6 6v5"/>

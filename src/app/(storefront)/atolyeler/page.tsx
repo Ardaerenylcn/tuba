@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 async function getWorkshops() {
   return db.program.findMany({
     where: { type: "atolyeler", status: "published" },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     include: { coverImage: { select: { url: true } } },
   });
 }

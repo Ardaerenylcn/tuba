@@ -5,7 +5,11 @@ import Image from "next/image";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 
-async function getCroppedBlob(imageSrc: string, pixelCrop: Area): Promise<Blob> {
+async function getCroppedBlob(
+  imageSrc: string,
+  pixelCrop: Area,
+  outputType: "jpeg" | "png",
+): Promise<Blob> {
   const img = new window.Image();
   img.src = imageSrc;
   await new Promise((res) => { img.onload = res; });
@@ -19,7 +23,8 @@ async function getCroppedBlob(imageSrc: string, pixelCrop: Area): Promise<Blob> 
     0, 0, pixelCrop.width, pixelCrop.height,
   );
 
-  return new Promise((res) => canvas.toBlob((b) => res(b!), "image/jpeg", 0.92));
+  const mime = outputType === "png" ? "image/png" : "image/jpeg";
+  return new Promise((res) => canvas.toBlob((b) => res(b!), mime, 0.92));
 }
 
 interface Props {
@@ -27,9 +32,29 @@ interface Props {
   previewUrl: string | null;
   onChange: (id: string, url: string) => void;
   onClear: () => void;
+  /** Kırpma oranı. Varsayılan 3:4 (dik kapak). Logo için 1 (kare). */
+  aspect?: number;
+  /** Çıktı formatı. Logo için "png" → şeffaflık korunur. Varsayılan "jpeg". */
+  outputType?: "jpeg" | "png";
+  /** Önizleme kutusunun görsel oturması. Logo için "contain". Varsayılan "cover". */
+  objectFit?: "cover" | "contain";
+  /** Üst etiket. Varsayılan "Kapak Görseli". */
+  label?: string;
+  /** Boş durum ipucu metni. */
+  hint?: string;
 }
 
-export function CoverImagePicker({ value: _value, previewUrl, onChange, onClear }: Props) {
+export function CoverImagePicker({
+  value: _value,
+  previewUrl,
+  onChange,
+  onClear,
+  aspect = 3 / 4,
+  outputType = "jpeg",
+  objectFit = "cover",
+  label = "Kapak Görseli",
+  hint,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,9 +82,11 @@ export function CoverImagePicker({ value: _value, previewUrl, onChange, onClear 
     setUploading(true);
     setError(null);
     try {
-      const blob = await getCroppedBlob(cropSrc, croppedAreaPixels);
+      const blob = await getCroppedBlob(cropSrc, croppedAreaPixels, outputType);
       const fd = new FormData();
-      fd.append("file", new File([blob], "cover.jpg", { type: "image/jpeg" }));
+      const ext = outputType === "png" ? "png" : "jpg";
+      const mime = outputType === "png" ? "image/png" : "image/jpeg";
+      fd.append("file", new File([blob], `cover.${ext}`, { type: mime }));
       const res = await fetch("/api/v1/admin/upload", { method: "POST", body: fd });
       const data = await res.json();
       if (!data.success) throw new Error(data.message ?? "Yükleme başarısız.");
@@ -80,7 +107,7 @@ export function CoverImagePicker({ value: _value, previewUrl, onChange, onClear 
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">Kapak Görseli</p>
+      <p className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">{label}</p>
 
       {/* Kırpma modalı */}
       {cropSrc && (
@@ -90,7 +117,7 @@ export function CoverImagePicker({ value: _value, previewUrl, onChange, onClear 
               image={cropSrc}
               crop={crop}
               zoom={zoom}
-              aspect={3 / 4}
+              aspect={aspect}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
@@ -131,8 +158,17 @@ export function CoverImagePicker({ value: _value, previewUrl, onChange, onClear 
       )}
 
       {previewUrl ? (
-        <div className="group relative aspect-[3/4] w-full overflow-hidden border border-[var(--border)] bg-[var(--bg-subtle)]">
-          <Image src={previewUrl} alt="Kapak görseli" fill className="object-cover" sizes="320px" />
+        <div
+          className="group relative w-full overflow-hidden border border-[var(--border)] bg-[var(--bg-subtle)]"
+          style={{ aspectRatio: aspect }}
+        >
+          <Image
+            src={previewUrl}
+            alt={label}
+            fill
+            className={objectFit === "contain" ? "object-contain p-2" : "object-cover"}
+            sizes="320px"
+          />
           <button
             type="button"
             onClick={onClear}
@@ -156,7 +192,7 @@ export function CoverImagePicker({ value: _value, previewUrl, onChange, onClear 
           </svg>
           <span className="text-xs">Görsel seç</span>
           <span className="text-[10px] text-[var(--text-muted)]">JPEG, PNG, WebP — maks. 10 MB</span>
-          <span className="text-[10px] text-[var(--text-disabled)]">Seçince kırpma ekranı açılır (3:4 — dik)</span>
+          <span className="text-[10px] text-[var(--text-disabled)]">{hint ?? "Seçince kırpma ekranı açılır (3:4 — dik)"}</span>
         </button>
       )}
 

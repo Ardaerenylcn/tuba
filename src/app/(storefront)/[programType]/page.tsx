@@ -22,7 +22,7 @@ async function getPageData(programType: string) {
     db.programCategory.findUnique({ where: { slug: programType } }),
     db.program.findMany({
       where: { type: programType, status: "published" },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       include: { coverImage: { select: { url: true } } },
     }),
   ]);

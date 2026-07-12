@@ -35,7 +35,7 @@ export async function GET() {
 
   try {
     const programs = await db.program.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       include: { _count: { select: { sessions: true } } },
     });
     return ok(programs);

@@ -63,9 +63,9 @@ export function SiteHeader({ announcement, logoUrl }: { announcement?: Announcem
                 <Image
                   src={logoUrl}
                   alt="Tuba Atman Jewelry"
-                  width={36}
-                  height={36}
-                  className="h-9 w-9 object-contain shrink-0"
+                  width={56}
+                  height={56}
+                  className="h-12 w-auto max-w-[180px] object-contain shrink-0"
                 />
               )}
               <div className="flex flex-col">

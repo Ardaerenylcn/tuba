@@ -72,10 +72,15 @@ export default function LogoPage() {
             previewUrl={imageUrl}
             onChange={(id, url) => { setImageId(id); setImageUrl(url); }}
             onClear={() => { setImageId(null); setImageUrl(null); }}
+            aspect={1}
+            outputType="png"
+            objectFit="contain"
+            label="Logo Görseli"
+            hint="Seçince kırpma ekranı açılır (kare — logoyu ortalayıp yakınlaştırın)"
           />
 
           <p className="text-[11px] text-[var(--text-disabled)]">
-            Şeffaf arka planlı PNG veya SVG önerilir. Görsel otomatik olarak 36×36 px boyutuna uyarlanır.
+            Şeffaf arka planlı PNG önerilir. Kırpma ekranında logoyu yakınlaştırıp kenar boşluklarını kırparsanız header'da daha büyük ve net görünür.
           </p>
         </div>
 
@@ -87,7 +92,7 @@ export default function LogoPage() {
               <img
                 src={imageUrl}
                 alt="Logo önizleme"
-                className="h-9 w-9 object-contain"
+                className="h-12 w-auto max-w-[180px] object-contain"
               />
               <div className="flex flex-col leading-none">
                 <span className="text-[15px] text-[var(--text-primary)]" style={{ fontFamily: "Georgia, serif" }}>
