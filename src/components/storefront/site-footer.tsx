@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getFeaturedReviews } from "@/lib/reviews";
+import { FooterReviews } from "./footer-reviews";
 
 interface Settings {
   siteName?: string;
@@ -16,7 +18,7 @@ async function getSettings(): Promise<Settings> {
 }
 
 export async function SiteFooter() {
-  const s = await getSettings();
+  const [s, footerReviews] = await Promise.all([getSettings(), getFeaturedReviews(4)]);
   const instagramUrl = s.instagramUrl || "#";
   const facebookUrl = s.facebookUrl || "#";
   void facebookUrl;
@@ -84,6 +86,11 @@ export async function SiteFooter() {
               Çağdaş takı tasarımı, el işçiliği ve İstanbul&apos;daki yaratıcı
               atölye deneyimleri.
             </p>
+            {footerReviews.length > 0 && (
+              <div className="mt-2 max-w-[240px] border-t border-[var(--border)] pt-4">
+                <FooterReviews reviews={footerReviews} />
+              </div>
+            )}
           </div>
 
           {/* Link columns */}

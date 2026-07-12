@@ -127,6 +127,7 @@ model Program {
   requirements  ProgramRequirement[]
   faqs          ProgramFaq[]
   sessions      WorkshopSession[]
+  reviews       Review[]
 
   @@map("programs")
 }
@@ -241,6 +242,30 @@ model GiftCard {
   reservations Reservation[]
 
   @@map("gift_cards")
+}
+
+// ---------------------------------------------------------------------------
+// Reviews (Kullanıcı yorumları)
+// ---------------------------------------------------------------------------
+
+model Review {
+  id          String        @id @default(cuid())
+  authorName  String
+  displayName String?
+  avatarUrl   String?
+  rating      Int           @default(5)
+  body        String
+  programId   String?
+  status      ContentStatus @default(published)
+  featured    Boolean       @default(false)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  program Program? @relation(fields: [programId], references: [id])
+
+  @@index([status, featured, sortOrder])
+  @@map("reviews")
 }
 
 // ---------------------------------------------------------------------------
