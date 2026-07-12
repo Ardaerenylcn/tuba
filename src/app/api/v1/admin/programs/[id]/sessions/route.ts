@@ -2,6 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { ok, created, badRequest, forbidden, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
+import { findSessionConflicts, conflictMessage } from "@/lib/session-conflicts";
 
 const createSchema = z.object({
   startAt: z.string().datetime(),
@@ -87,7 +88,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       },
     });
 
-    return created(workshopSession, "Oturum oluşturuldu.");
+    const conflicts = await findSessionConflicts({
+      startAt: workshopSession.startAt,
+      endAt: workshopSession.endAt,
+      locationName: workshopSession.locationName,
+      instructorId: workshopSession.instructorId,
+      excludeId: workshopSession.id,
+    });
+    const msg = conflicts.length > 0 ? `Oturum oluşturuldu. ${conflictMessage(conflicts)}` : "Oturum oluşturuldu.";
+
+    return created({ ...workshopSession, conflicts }, msg);
   } catch (err) {
     console.error("[POST /api/v1/admin/programs/:id/sessions]", err);
     return serverError();

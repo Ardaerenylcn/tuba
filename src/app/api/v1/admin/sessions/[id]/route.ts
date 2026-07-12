@@ -2,6 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { ok, badRequest, forbidden, notFound, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
+import { findSessionConflicts, conflictMessage } from "@/lib/session-conflicts";
 
 const patchSchema = z.object({
   startAt: z.string().datetime().optional(),
@@ -57,7 +58,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
-    return ok(workshopSession, "Oturum güncellendi.");
+    // Çakışma uyarısı (aynı mekân/eğitmen + zaman)
+    const conflicts = await findSessionConflicts({
+      startAt: workshopSession.startAt,
+      endAt: workshopSession.endAt,
+      locationName: workshopSession.locationName,
+      instructorId: workshopSession.instructorId,
+      excludeId: workshopSession.id,
+    });
+
+    // Tarih/saat değişip aktif katılımcı varsa ek uyarı
+    const timeChanged = Boolean(parsed.data.startAt || parsed.data.endAt);
+    const parts: string[] = ["Oturum güncellendi."];
+    if (timeChanged && workshopSession._count.reservations > 0) {
+      parts.push(`⚠ Bu oturumda ${workshopSession._count.reservations} aktif katılımcı var; tarih/saat değişikliğinden etkilenirler.`);
+    }
+    if (conflicts.length > 0) parts.push(conflictMessage(conflicts));
+
+    return ok({ ...workshopSession, conflicts }, parts.join(" "));
   } catch (err) {
     console.error("[PATCH /api/v1/admin/sessions/:id]", err);
     return serverError();
