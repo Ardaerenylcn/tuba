@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       const session = await tx.workshopSession.findUnique({
         where: { id: sessionId },
         include: {
-          program: { select: { basePrice: true, currency: true } },
+          program: { select: { title: true, basePrice: true, currency: true } },
           _count: {
             select: {
               reservations: { where: { status: { in: ["pending", "confirmed"] } } },
@@ -129,6 +129,20 @@ export async function POST(request: Request) {
           data: { status: "full" },
         });
       }
+
+      // Admin bildirimi oluştur
+      const whenStr = new Intl.DateTimeFormat("tr-TR", {
+        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+        timeZone: "Europe/Istanbul",
+      }).format(session.startAt);
+      await tx.notification.create({
+        data: {
+          type: "reservation",
+          title: "Yeni rezervasyon",
+          body: `${customerName}, "${session.program.title}" için ${whenStr} seansına ${participantCount} kişilik rezervasyon yaptı.`,
+          link: "/admin/rezervasyonlar",
+        },
+      });
 
       return { reservation };
     });
