@@ -232,6 +232,16 @@ export const DEFAULT_HAKKIMIZDA: HakkimizdaConfig = {
 
 // ─── Typed site content map ───────────────────────────────────────────────────
 
+export interface LogoConfig {
+  imageUrl: string | null;
+  imageId: string | null;
+}
+
+export const DEFAULT_LOGO: LogoConfig = {
+  imageUrl: null,
+  imageId: null,
+};
+
 export interface SiteContentMap {
   announcement_bar: AnnouncementBarConfig;
   atolye_biz: AtolyeBizConfig;
@@ -239,6 +249,7 @@ export interface SiteContentMap {
   newsletter: NewsletterConfig;
   contact_info: ContactConfig;
   collections: CollectionsConfig;
+  logo: LogoConfig;
 }
 
 const SITE_CONTENT_KEYS = [
@@ -248,6 +259,7 @@ const SITE_CONTENT_KEYS = [
   "newsletter",
   "contact_info",
   "collections",
+  "logo",
 ] as const;
 
 export async function getHakkimizdaConfig(): Promise<HakkimizdaConfig> {
@@ -300,5 +312,8 @@ export async function getAllSiteContent(): Promise<SiteContentMap> {
         })),
       };
     })(),
+    logo: map["logo"]
+      ? { ...DEFAULT_LOGO, ...(map["logo"] as Partial<LogoConfig>) }
+      : DEFAULT_LOGO,
   };
 }

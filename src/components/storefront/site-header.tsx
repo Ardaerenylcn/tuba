@@ -1,32 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { ReservationModal } from "./reservation-modal";
 import type { AnnouncementBarConfig } from "@/lib/site-content";
 
 const NAV_LINKS = [
-  { href: "/", label: "Anasayfa" },
-  {
-    href: "/koleksiyonlar",
-    label: "Koleksiyonlar",
-    children: [
-      { href: "/koleksiyonlar/kolyeler", label: "Kolyeler" },
-      { href: "/koleksiyonlar/yuzukler", label: "Yüzükler" },
-      { href: "/koleksiyonlar/kupeler", label: "Küpeler" },
-      { href: "/koleksiyonlar/bileklikler", label: "Bileklikler" },
-      { href: "/koleksiyonlar/charmlar", label: "Charm'lar" },
-    ],
-  },
-  { href: "/programlar", label: "Atölye Biz" },
-  { href: "/hakkimizda", label: "Hakkımızda" },
+  { href: "/deneme-dersi", label: "Deneme Dersi" },
+  { href: "/programlar", label: "Eğitimler" },
+  { href: "/atolyeler", label: "Workshoplar" },
+  { href: "/takvim", label: "Takvim" },
+  { href: "/hediye-karti", label: "Hediye Kartı" },
+  { href: "https://www.tubaatman.com/", label: "Tuba Atman", external: true },
   { href: "/iletisim", label: "İletişim" },
+  { href: "/blog", label: "Blog" },
 ];
 
-export function SiteHeader({ announcement }: { announcement?: AnnouncementBarConfig }) {
+export function SiteHeader({ announcement, logoUrl }: { announcement?: AnnouncementBarConfig; logoUrl?: string | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -65,51 +58,45 @@ export function SiteHeader({ announcement }: { announcement?: AnnouncementBarCon
         >
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
             {/* Logo */}
-            <Link href="/" className="flex flex-col leading-none select-none group">
-              <span
-                className="text-[15px] tracking-[0.04em] text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors"
-                style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 500 }}
-              >
-                tuba atman
-              </span>
-              <span
-                className="text-[11px] tracking-[0.22em] uppercase text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors"
-                style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
-              >
-                jewelry
-              </span>
+            <Link href="/" className="flex items-center gap-2.5 leading-none select-none group">
+              {logoUrl && (
+                <Image
+                  src={logoUrl}
+                  alt="Tuba Atman Jewelry"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 object-contain shrink-0"
+                />
+              )}
+              <div className="flex flex-col">
+                <span
+                  className="text-[15px] tracking-[0.04em] text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors"
+                  style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 500 }}
+                >
+                  tuba atman
+                </span>
+                <span
+                  className="text-[11px] tracking-[0.22em] uppercase text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors"
+                  style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
+                >
+                  jewelry
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden items-center gap-7 md:flex" aria-label="Ana menü">
+            <nav className="hidden items-center gap-6 md:flex" aria-label="Ana menü">
               {NAV_LINKS.map((link) =>
-                link.children ? (
-                  <div
+                link.external ? (
+                  <a
                     key={link.href}
-                    className="relative"
-                    onMouseEnter={() => setDropdownOpen(true)}
-                    onMouseLeave={() => setDropdownOpen(false)}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                   >
-                    <button className="flex items-center gap-1 text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors py-1">
-                      {link.label}
-                      <svg className="w-3 h-3 mt-px" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                        <path d="M2 4l4 4 4-4" />
-                      </svg>
-                    </button>
-                    {dropdownOpen && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 min-w-[160px] bg-[var(--surface)] border border-[var(--border)] shadow-md py-2 z-10">
-                        {link.children.map((child) => (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            className="block px-4 py-2 text-[12px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors"
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    {link.label}
+                  </a>
                 ) : (
                   <Link
                     key={link.href}
