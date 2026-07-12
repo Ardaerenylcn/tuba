@@ -26,7 +26,6 @@ async function getAllPrograms() {
       include: { coverImage: { select: { url: true } } },
     }),
     db.programCategory.findMany({
-      where: { isActive: true },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }),
   ]);
@@ -36,14 +35,21 @@ async function getAllPrograms() {
 export default async function AllProgramsPage() {
   const { programs, categories } = await getAllPrograms();
 
-  const catNameBySlug = Object.fromEntries(categories.map((c) => [c.slug, c.name]));
-  const catOrder = categories.map((c) => c.slug);
+  // Pasif kategoriler gösterilmez
+  const blocked = new Set(categories.filter((c) => !c.isActive).map((c) => c.slug));
+  const activeCats = categories.filter((c) => c.isActive);
 
-  // Yayında programı olan tipler
-  const publishedTypes = [...new Set(programs.map((p) => p.type))];
+  const catNameBySlug = Object.fromEntries(activeCats.map((c) => [c.slug, c.name]));
+  const catOrder = activeCats.map((c) => c.slug);
+
+  // Yayında programı olan tipler — pasif kategoriler hariç
+  const publishedTypes = [...new Set(programs.map((p) => p.type))].filter((s) => !blocked.has(s));
 
   // showOnHome açık kategoriler (programsız olsa bile göster)
-  const showOnHomeExtra = catOrder.filter((s) => !publishedTypes.includes(s));
+  const showOnHomeExtra = activeCats
+    .filter((c) => c.showOnHome)
+    .map((c) => c.slug)
+    .filter((s) => !publishedTypes.includes(s));
 
   // Birleştir: önce publishedTypes (kategori sırasına göre), sonra showOnHome ekstralar
   const orderedPublished = [

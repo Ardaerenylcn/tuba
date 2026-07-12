@@ -58,9 +58,8 @@ export async function getHomePageData() {
       },
       orderBy: { createdAt: "desc" },
     }),
-    // Admin'den oluşturulmuş kategori kayıtları (isim/açıklama/görsel için)
+    // Tüm kategori kayıtları — aktif/pasif ayrımı burada yapılacak
     db.programCategory.findMany({
-      where: { isActive: true },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }),
     db.siteContent.findUnique({
@@ -72,15 +71,22 @@ export async function getHomePageData() {
     ? { ...DEFAULT_HERO_BANNER, ...(heroBannerEntry.value as Partial<HeroBannerConfig>) }
     : DEFAULT_HERO_BANNER;
 
-  // Kategori kayıtlarını slug'a göre map'le
-  const catBySlug = Object.fromEntries(categoriesRaw.map((c) => [c.slug, c]));
+  // Pasif olarak işaretlenmiş kategorilerin slug'ları — bu tipler gösterilmez
+  const blockedSlugs = new Set(
+    categoriesRaw.filter((c) => !c.isActive).map((c) => c.slug)
+  );
 
-  // Yayındaki her tip için kart verisi oluştur
-  // Sıralama: önce sortOrder'ı olan kategoriler, sonra geri kalanlar
-  const publishedSlugs = publishedTypes.map((p) => p.type);
+  // Yalnızca aktif kategorileri kullan
+  const activeCats = categoriesRaw.filter((c) => c.isActive);
+  const catBySlug = Object.fromEntries(activeCats.map((c) => [c.slug, c]));
 
-  // Hem yayındaki tiplerden hem de showOnHome kategorilerden birleştir
-  const showOnHomeSlugs = categoriesRaw
+  // Yayında program olan tipler — pasif kategoriler hariç
+  const publishedSlugs = publishedTypes
+    .map((p) => p.type)
+    .filter((s) => !blockedSlugs.has(s));
+
+  // showOnHome açık aktif kategoriler (programsız olsa bile göster)
+  const showOnHomeSlugs = activeCats
     .filter((c) => c.showOnHome)
     .map((c) => c.slug)
     .filter((s) => !publishedSlugs.includes(s));
