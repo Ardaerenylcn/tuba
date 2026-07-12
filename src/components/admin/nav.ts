@@ -32,6 +32,7 @@ export const ADMIN_NAV = [
     label: "Site",
     items: [
       { href: "/admin/site", label: "Site İçeriği" },
+      { href: "/admin/blog", label: "Blog" },
       { href: "/admin/yorumlar", label: "Yorumlar" },
       { href: "/admin/site/logo", label: "Logo" },
       { href: "/admin/banner", label: "Giriş Bannerı" },

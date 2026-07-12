@@ -4,10 +4,16 @@ import { db } from "@/lib/db";
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://atolyebiz.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const programs = await db.program.findMany({
-    where: { status: "published" },
-    select: { slug: true, type: true, updatedAt: true },
-  });
+  const [programs, posts] = await Promise.all([
+    db.program.findMany({
+      where: { status: "published" },
+      select: { slug: true, type: true, updatedAt: true },
+    }),
+    db.blogPost.findMany({
+      where: { status: "published", publishedAt: { lte: new Date() } },
+      select: { slug: true, updatedAt: true },
+    }),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
@@ -29,5 +35,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...programRoutes];
+  const blogRoutes: MetadataRoute.Sitemap = [
+    { url: `${BASE}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    ...posts.map((p) => ({
+      url: `${BASE}/blog/${p.slug}`,
+      lastModified: p.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ];
+
+  return [...staticRoutes, ...programRoutes, ...blogRoutes];
 }
