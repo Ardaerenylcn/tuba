@@ -1,21 +1,36 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { membershipStatus } from "@/components/admin/member-actions";
 import type { Metadata } from "next";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Müşteriler | Admin" };
 
 interface Props {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; sort?: string }>;
 }
 
 export default async function AdminCustomersPage({ searchParams }: Props) {
-  const { q } = await searchParams;
+  const { q, status = "all", sort = "newest" } = await searchParams;
   const search = q?.trim() ?? "";
+
+  // Üyelik durumu filtresi
+  const statusFilter: Prisma.UserWhereInput =
+    status === "active" ? { isActive: true, emailVerified: true }
+    : status === "passive" ? { isActive: false }
+    : status === "unverified" ? { emailVerified: false }
+    : {};
+
+  const orderBy: Prisma.UserOrderByWithRelationInput =
+    sort === "oldest" ? { createdAt: "asc" }
+    : sort === "name" ? { name: "asc" }
+    : { createdAt: "desc" };
 
   const [users, guestStats] = await Promise.all([
     db.user.findMany({
       where: {
         role: { in: ["customer", "instructor"] },
+        ...statusFilter,
         ...(search
           ? {
               OR: [
@@ -26,7 +41,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
             }
           : {}),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
       include: {
         reservations: {
           select: {
@@ -69,6 +84,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
           <h1 className="text-xl font-medium text-[var(--text-primary)]">Müşteriler</h1>
           <p className="text-sm text-[var(--text-muted)]">{users.length} kayıtlı üye</p>
         </div>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- dosya indirme endpoint'i, sayfa değil */}
         <a
           href="/api/v1/admin/export/customers"
           className="inline-flex h-9 items-center gap-2 border border-[var(--border)] px-4 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
@@ -92,8 +108,8 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
         ))}
       </div>
 
-      {/* Search */}
-      <form method="GET" className="flex gap-2">
+      {/* Arama + filtre + sıralama */}
+      <form method="GET" className="flex flex-col gap-2 sm:flex-row">
         <input
           type="search"
           name="q"
@@ -101,13 +117,26 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
           placeholder="Ad, e-posta veya telefon ara..."
           className="h-9 flex-1 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
         />
+        <select name="status" defaultValue={status}
+          className="h-9 border border-[var(--border)] bg-[var(--surface)] px-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]">
+          <option value="all">Tüm durumlar</option>
+          <option value="active">Aktif</option>
+          <option value="passive">Pasif / Engelli</option>
+          <option value="unverified">E-posta doğrulanmadı</option>
+        </select>
+        <select name="sort" defaultValue={sort}
+          className="h-9 border border-[var(--border)] bg-[var(--surface)] px-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]">
+          <option value="newest">En yeni</option>
+          <option value="oldest">En eski</option>
+          <option value="name">İsme göre</option>
+        </select>
         <button
           type="submit"
           className="h-9 bg-[var(--text-primary)] px-4 text-xs font-medium tracking-[0.08em] uppercase text-[var(--surface)] hover:bg-[var(--color-stone-700)]"
         >
-          Ara
+          Uygula
         </button>
-        {search && (
+        {(search || status !== "all" || sort !== "newest") && (
           <Link
             href="/admin/musteriler"
             className="flex h-9 items-center px-3 text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)]"
@@ -141,7 +170,12 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
                 {customers.map((c) => (
                   <tr key={c.id} className="hover:bg-[var(--bg-subtle)]">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[var(--text-primary)]">{c.name}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium text-[var(--text-primary)]">{c.name}</p>
+                        {(() => { const s = membershipStatus(c.isActive, c.emailVerified); return (
+                          <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] ${s.tone}`}>{s.label}</span>
+                        ); })()}
+                      </div>
                       <p className="text-xs text-[var(--text-muted)]">{c.email}</p>
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--text-secondary)]">

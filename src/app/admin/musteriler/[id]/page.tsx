@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { ReservationActions } from "@/components/admin/reservation-actions";
+import { MemberActions, membershipStatus } from "@/components/admin/member-actions";
 import type { Metadata } from "next";
 
 interface Props {
@@ -69,9 +70,22 @@ export default async function CustomerDetailPage({ params }: Props) {
         >
           ← Müşteriler
         </Link>
-        <h1 className="text-xl font-medium text-[var(--text-primary)]">{user.name}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-xl font-medium text-[var(--text-primary)]">{user.name}</h1>
+          {(() => { const s = membershipStatus(user.isActive, user.emailVerified); return (
+            <span className={`inline-flex items-center px-2 py-0.5 text-xs ${s.tone}`}>{s.label}</span>
+          ); })()}
+        </div>
         <p className="text-sm text-[var(--text-muted)]">{user.email}</p>
       </div>
+
+      {/* Üyelik yönetimi */}
+      <MemberActions
+        userId={user.id}
+        initialActive={user.isActive}
+        initialNotes={user.adminNotes}
+        emailVerified={user.emailVerified}
+      />
 
       {/* Profile + stats row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

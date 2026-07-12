@@ -21,10 +21,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json().catch(() => null);
   if (!body) return badRequest("Geçersiz istek.");
 
-  const { role, isActive } = body as { role?: string; isActive?: boolean };
+  const { role, isActive, adminNotes } = body as { role?: string; isActive?: boolean; adminNotes?: string | null };
 
   if (role !== undefined && !ALLOWED_ROLES.includes(role as Role)) {
     return badRequest("Geçersiz rol.");
+  }
+  if (adminNotes !== undefined && adminNotes !== null && adminNotes.length > 2000) {
+    return badRequest("Not en fazla 2000 karakter olabilir.");
   }
 
   // Prevent self-demotion
@@ -38,8 +41,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       data: {
         ...(role !== undefined && { role: role as Role }),
         ...(isActive !== undefined && { isActive }),
+        ...(adminNotes !== undefined && { adminNotes: adminNotes || null }),
       },
-      select: { id: true, name: true, email: true, role: true, isActive: true },
+      select: { id: true, name: true, email: true, role: true, isActive: true, adminNotes: true },
     });
     return ok(user, "Kullanıcı güncellendi.");
   } catch (err) {
