@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export interface CalendarSession {
   id: string;
@@ -131,14 +132,13 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
     return m;
   }, [visibleSessions]);
 
-  // Mobil ajanda: tarihe göre kronolojik gruplar (sadece programı olan günler)
-  const agenda = useMemo(
-    () =>
-      [...byDay.entries()]
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([key, items]) => ({ key, items })),
-    [byDay],
-  );
+  // Mobilde bir güne dokununca açılan alt menü (bottom sheet)
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  function selectDay(key: string, hasSessions: boolean) {
+    setSelected(key);
+    setSheetOpen(hasSessions); // sadece programı olan günde alt menüyü aç
+  }
 
   // İlk oturumun ayı ve günü (başlangıç görünümü)
   const firstKey = sessions.length ? istKey(sessions[0].startAt) : todayKey;
@@ -185,8 +185,8 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
         ))}
       </div>
 
-      {/* ── MASAÜSTÜ: ay ızgarası + seçili gün paneli ── */}
-      <div className="hidden gap-6 md:grid md:grid-cols-1 lg:grid-cols-[1fr_360px]">
+      {/* Ay ızgarası (her ekranda) + masaüstünde yan panel */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
         {/* Takvim */}
         <div className="border border-[var(--border)] bg-[var(--surface)]">
           {/* Ay başlığı + navigasyon */}
@@ -236,9 +236,9 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
               return (
                 <button
                   key={cell.key + i}
-                  onClick={() => cell.inMonth && setSelected(cell.key)}
+                  onClick={() => cell.inMonth && selectDay(cell.key, daySessions.length > 0)}
                   disabled={!cell.inMonth}
-                  className={`relative flex min-h-[76px] flex-col gap-1 border-b border-r border-[var(--border)] p-1.5 text-left transition-colors sm:min-h-[92px] ${
+                  className={`relative flex min-h-[58px] flex-col gap-1 border-b border-r border-[var(--border)] p-1.5 text-left transition-colors sm:min-h-[92px] ${
                     !cell.inMonth
                       ? "bg-[var(--bg-subtle)]/40 cursor-default"
                       : isSelected
@@ -289,8 +289,8 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
           </div>
         </div>
 
-        {/* Seçili gün detayı */}
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        {/* Seçili gün detayı — sadece masaüstü */}
+        <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
           <div className="border border-[var(--border)] bg-[var(--surface)]">
             <div className="border-b border-[var(--border)] px-5 py-4">
               <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">Seçili Gün</p>
@@ -318,38 +318,68 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
         </aside>
       </div>
 
-      {/* ── MOBİL: tarihe göre gruplu ajanda listesi ── */}
-      <div className="md:hidden">
-        {agenda.length === 0 ? (
-          <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-5 py-10 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Bu filtre için program bulunamadı.</p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5">
-            {agenda.map(({ key, items }) => (
-              <div key={key}>
-                {/* Gün başlığı */}
-                <div className="mb-2 flex items-baseline gap-2 border-b border-[var(--border)] pb-1.5">
-                  <p className="text-sm font-medium capitalize text-[var(--text-primary)]">{fmtDayShort(key)}</p>
-                  <p className="text-xs text-[var(--text-muted)]">{fmtWeekday(key)}</p>
-                  <span className="ml-auto text-[11px] text-[var(--text-muted)]">{items.length} program</span>
-                </div>
-                {/* O günün oturumları */}
-                <div className="flex flex-col divide-y divide-[var(--border)] border border-[var(--border)] bg-[var(--surface)]">
-                  {items.map((s) => (
-                    <SessionCard
-                      key={s.id}
-                      s={s}
-                      dot={colorByType.get(s.programType)?.dot ?? "bg-stone-400"}
-                      typeName={nameByType.get(s.programType) ?? s.programType}
-                    />
-                  ))}
-                </div>
+      {/* ── MOBİL: güne dokununca aşağıdan kayan alt menü ── */}
+      <AnimatePresence>
+        {sheetOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Arka plan */}
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setSheetOpen(false)}
+            />
+            {/* Alt panel */}
+            <motion.div
+              className="absolute inset-x-0 bottom-0 flex max-h-[78vh] flex-col rounded-t-3xl bg-[var(--surface)] shadow-[0_-8px_30px_rgba(0,0,0,0.15)]"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 340 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 120) setSheetOpen(false);
+              }}
+            >
+              {/* Tutamak */}
+              <div className="flex shrink-0 justify-center pt-3 pb-1">
+                <span className="h-1.5 w-10 rounded-full bg-[var(--border)]" />
               </div>
-            ))}
-          </div>
+              {/* Başlık */}
+              <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-5 py-3">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-base font-medium capitalize text-[var(--text-primary)]">{fmtDayShort(selected)}</p>
+                  <p className="text-xs text-[var(--text-muted)] capitalize">{fmtWeekday(selected)}</p>
+                </div>
+                <button
+                  onClick={() => setSheetOpen(false)}
+                  aria-label="Kapat"
+                  className="flex h-8 w-8 items-center justify-center text-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                >
+                  ×
+                </button>
+              </div>
+              {/* Oturumlar (kaydırılabilir) */}
+              <div className="flex flex-col divide-y divide-[var(--border)] overflow-y-auto overscroll-contain">
+                {selectedSessions.map((s) => (
+                  <SessionCard
+                    key={s.id}
+                    s={s}
+                    dot={colorByType.get(s.programType)?.dot ?? "bg-stone-400"}
+                    typeName={nameByType.get(s.programType) ?? s.programType}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
