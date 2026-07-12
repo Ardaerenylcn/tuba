@@ -6,17 +6,21 @@ export async function AdminHeader() {
   const session = await getSession();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--surface)]/95 px-4 backdrop-blur sm:px-6">
       {/* Sol: mobil hamburger */}
-      <MobileMenu />
-      {/* Masaüstünde boş tutmak için spacer */}
-      <div className="hidden lg:block" />
+      <div className="flex items-center gap-3">
+        <MobileMenu />
+      </div>
 
       {/* Sağ: bildirimler + kullanıcı bilgisi */}
       <div className="flex items-center gap-3">
         <NotificationBell />
-        <span className="hidden sm:block text-xs text-[var(--text-muted)]">{session?.user.email}</span>
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--bg-muted)] text-xs font-medium text-[var(--text-primary)]">
+        <div className="hidden h-5 w-px bg-[var(--border)] sm:block" />
+        <div className="hidden flex-col items-end leading-tight sm:flex">
+          <span className="text-xs font-medium text-[var(--text-primary)]">{session?.user.name}</span>
+          <span className="text-[11px] text-[var(--text-muted)]">{session?.user.email}</span>
+        </div>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--admin-rail)] text-xs font-medium text-white">
           {session?.user.name?.charAt(0).toUpperCase() ?? "?"}
         </div>
       </div>

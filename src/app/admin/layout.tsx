@@ -4,13 +4,14 @@ import { AdminHeader } from "@/components/admin/admin-header";
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-
   return (
-    <div className="flex min-h-screen bg-[var(--bg-subtle)]">
+    <div className="admin-root flex min-h-screen bg-[var(--bg)]">
       <AdminSidebar />
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader />
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+        </main>
       </div>
     </div>
   );

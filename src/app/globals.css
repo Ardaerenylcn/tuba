@@ -129,6 +129,38 @@
   --sidebar-ring:  oklch(0.708 0 0);
 }
 
+/* ---------------------------------------------------------------------------
+   Admin paneli — açık neutral (slate) tema override'ı.
+   Yalnızca .admin-root altında geçerli; storefront sıcak temasını etkilemez.
+   Böylece tüm admin sayfaları semantic token'lar üzerinden otomatik yeniden temalanır.
+--------------------------------------------------------------------------- */
+.admin-root {
+  --bg:              #f1f5f9; /* slate-100 — çalışma alanı zemini */
+  --bg-subtle:       #eef2f7;
+  --bg-muted:        #e2e8f0;
+  --surface:         #ffffff; /* kartlar */
+  --surface-raised:  #ffffff;
+  --border:          #e6eaf0; /* yumuşak soğuk gri */
+  --border-strong:   #cbd5e1;
+  --text-primary:    #0f172a; /* slate-900 */
+  --text-secondary:  #334155; /* slate-700 */
+  --text-muted:      #64748b; /* slate-500 */
+  --text-disabled:   #94a3b8; /* slate-400 */
+  --accent:          #b45309; /* ince marka vurgusu (amber-700) */
+  --accent-hover:    #92400e;
+  --accent-subtle:   #fef3c7;
+  --color-stone-700: #334155; /* birincil buton hover → slate-700 */
+
+  /* Koyu kenar çubuğu için token'lar */
+  --admin-rail:        #0f172a; /* slate-900 */
+  --admin-rail-hover:  rgba(255,255,255,0.06);
+  --admin-rail-active: rgba(255,255,255,0.10);
+  --admin-rail-accent: #c9a97a; /* marka altını (aktif vurgu) */
+
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text-primary);
