@@ -24,6 +24,7 @@ export const ADMIN_NAV = [
       { href: "/admin/musteriler", label: "Müşteriler" },
       { href: "/admin/odemeler", label: "Ödemeler" },
       { href: "/admin/indirim-kodlari", label: "İndirim Kodları" },
+      { href: "/admin/hediye-kartlari", label: "Hediye Kartları" },
     ],
   },
   {

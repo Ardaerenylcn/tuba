@@ -9,6 +9,7 @@ const reservationSchema = z.object({
   customerPhone: z.string().min(7).max(20),
   participantCount: z.coerce.number().int().min(1).max(20),
   notes: z.string().max(500).optional().or(z.literal("")).transform((v) => v || undefined),
+  giftCardCode: z.string().max(40).optional().or(z.literal("")).transform((v) => v || undefined),
 });
 
 export async function POST(request: Request) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
   const parsed = reservationSchema.safeParse(body);
   if (!parsed.success) return handleZodError(parsed.error);
 
-  const { sessionId, customerName, customerEmail, customerPhone, participantCount, notes } =
+  const { sessionId, customerName, customerEmail, customerPhone, participantCount, notes, giftCardCode } =
     parsed.data;
 
   try {
@@ -61,6 +62,27 @@ export async function POST(request: Request) {
       if (existing) return { error: "duplicate" } as const;
 
       const priceSnapshot = session.priceOverride ?? session.program.basePrice;
+      const total = Number(priceSnapshot) * participantCount;
+
+      // Hediye kartı uygulaması (varsa)
+      let giftCardId: string | null = null;
+      let giftCardAmount: number | null = null;
+      if (giftCardCode) {
+        const card = await tx.giftCard.findUnique({ where: { code: giftCardCode.trim().toUpperCase() } });
+        if (!card) return { error: "gift_invalid" } as const;
+        if (card.status === "cancelled") return { error: "gift_cancelled" } as const;
+        if (card.expiresAt < new Date()) return { error: "gift_expired" } as const;
+        const balance = Number(card.balance);
+        if (balance <= 0) return { error: "gift_empty" } as const;
+
+        giftCardAmount = Math.min(balance, total);
+        const newBalance = balance - giftCardAmount;
+        await tx.giftCard.update({
+          where: { id: card.id },
+          data: { balance: newBalance, status: newBalance <= 0 ? "depleted" : "active" },
+        });
+        giftCardId = card.id;
+      }
 
       const reservation = await tx.reservation.create({
         data: {
@@ -74,6 +96,8 @@ export async function POST(request: Request) {
           status: "pending",
           paymentStatus: "not_required",
           notes: notes ?? null,
+          giftCardId,
+          giftCardAmount,
         },
         select: {
           id: true,
@@ -81,6 +105,7 @@ export async function POST(request: Request) {
           customerEmail: true,
           priceSnapshot: true,
           participantCount: true,
+          giftCardAmount: true,
         },
       });
 
@@ -107,6 +132,14 @@ export async function POST(request: Request) {
           );
         case "duplicate":
           return conflict("Bu e-posta adresiyle bu oturum için zaten bir rezervasyon mevcut.");
+        case "gift_invalid":
+          return badRequest("Hediye kartı kodu bulunamadı.");
+        case "gift_cancelled":
+          return badRequest("Bu hediye kartı iptal edilmiş.");
+        case "gift_expired":
+          return badRequest("Bu hediye kartının süresi dolmuş.");
+        case "gift_empty":
+          return badRequest("Bu hediye kartının bakiyesi kalmamış.");
       }
     }
 

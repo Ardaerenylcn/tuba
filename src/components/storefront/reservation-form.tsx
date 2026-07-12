@@ -51,7 +51,39 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [giftCode, setGiftCode] = useState("");
+  const [giftApplied, setGiftApplied] = useState<{ balance: number } | null>(null);
+  const [giftMsg, setGiftMsg] = useState<string | null>(null);
+  const [giftLoading, setGiftLoading] = useState(false);
+
   const totalPrice = form.participantCount * pricePerPerson;
+  const giftValue = giftApplied ? Math.min(giftApplied.balance, totalPrice) : 0;
+  const netPrice = Math.max(0, totalPrice - giftValue);
+
+  async function applyGift() {
+    if (!giftCode.trim()) return;
+    setGiftLoading(true);
+    setGiftMsg(null);
+    try {
+      const res = await fetch("/api/v1/gift-cards/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: giftCode.trim(), orderAmount: totalPrice }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setGiftApplied(null);
+        setGiftMsg(data.message ?? "Geçersiz hediye kartı kodu.");
+        return;
+      }
+      setGiftApplied({ balance: data.data.balance });
+      setGiftMsg(null);
+    } catch {
+      setGiftMsg("Bağlantı hatası. Lütfen tekrar deneyin.");
+    } finally {
+      setGiftLoading(false);
+    }
+  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -86,23 +118,13 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
     return true;
   }
 
-  function handleNext(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (validateStep1()) setStep(2);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (!validateStep2()) return;
-
+  async function createReservation() {
     setLoading(true);
     try {
       const res = await fetch("/api/v1/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, ...form }),
+        body: JSON.stringify({ sessionId, ...form, giftCardCode: giftApplied ? giftCode.trim() : undefined }),
       });
       const data = await res.json();
       if (!data.success) { setError(data.message ?? "Bir hata oluştu."); return; }
@@ -112,6 +134,22 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleNext(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!validateStep1()) return;
+    // Hediye kartı tümünü karşılıyorsa ödeme adımını atla
+    if (netPrice === 0) { createReservation(); return; }
+    setStep(2);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!validateStep2()) return;
+    await createReservation();
   }
 
   const brand = cardBrand(card.number);
@@ -196,16 +234,56 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
             </div>
           )}
 
-          <div className="flex flex-col gap-4 border-t border-[var(--border)] pt-6">
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm text-[var(--text-muted)]">Toplam</span>
+          {/* Hediye kartı */}
+          <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-6">
+            <label className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
+              Hediye kartı kodu (isteğe bağlı)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={giftCode}
+                onChange={(e) => { setGiftCode(e.target.value.toUpperCase()); setGiftApplied(null); setGiftMsg(null); }}
+                placeholder="TUBA-XXXX-XXXX"
+                className="h-11 flex-1 border border-[var(--border)] bg-[var(--surface)] px-4 font-mono text-sm tracking-wider text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--text-primary)] placeholder:text-[var(--text-disabled)]"
+              />
+              <button
+                type="button"
+                onClick={applyGift}
+                disabled={giftLoading || !giftCode.trim()}
+                className="h-11 shrink-0 border border-[var(--border-strong)] px-5 text-xs font-medium uppercase tracking-wider text-[var(--text-primary)] transition-colors hover:border-[var(--text-primary)] disabled:opacity-40"
+              >
+                {giftLoading ? "..." : "Uygula"}
+              </button>
+            </div>
+            {giftMsg && <p className="text-xs text-red-600">{giftMsg}</p>}
+            {giftApplied && (
+              <p className="text-xs text-green-700">
+                ✓ Hediye kartı uygulandı — bakiye: {giftApplied.balance.toLocaleString("tr-TR")} ₺
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-6">
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="text-[var(--text-muted)]">Ara toplam</span>
+              <span className="text-[var(--text-primary)]">{totalPrice.toLocaleString("tr-TR")} ₺</span>
+            </div>
+            {giftValue > 0 && (
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="text-[var(--text-muted)]">Hediye kartı</span>
+                <span className="text-green-700">− {giftValue.toLocaleString("tr-TR")} ₺</span>
+              </div>
+            )}
+            <div className="flex items-baseline justify-between border-t border-[var(--border)] pt-3">
+              <span className="text-sm text-[var(--text-muted)]">Ödenecek</span>
               <span className="text-xl font-light text-[var(--text-primary)]">
-                {totalPrice.toLocaleString("tr-TR")} ₺
+                {netPrice.toLocaleString("tr-TR")} ₺
               </span>
             </div>
-            <button type="submit"
-              className="h-12 w-full bg-[var(--text-primary)] text-xs font-medium tracking-[0.15em] uppercase text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)]">
-              Devam Et →
+            <button type="submit" disabled={loading}
+              className="h-12 w-full bg-[var(--text-primary)] text-xs font-medium tracking-[0.15em] uppercase text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)] disabled:opacity-50">
+              {netPrice === 0 ? (loading ? "İşleniyor..." : "Rezervasyonu Tamamla") : "Devam Et →"}
             </button>
           </div>
         </form>
@@ -275,13 +353,13 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-[var(--text-muted)]">Ödenecek Tutar</span>
               <span className="text-xl font-light text-[var(--text-primary)]">
-                {totalPrice.toLocaleString("tr-TR")} ₺
+                {netPrice.toLocaleString("tr-TR")} ₺
               </span>
             </div>
 
             <button type="submit" disabled={loading}
               className="h-12 w-full bg-[var(--text-primary)] text-xs font-medium tracking-[0.15em] uppercase text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)] disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading ? "İşleniyor..." : `${totalPrice.toLocaleString("tr-TR")} ₺ Öde`}
+              {loading ? "İşleniyor..." : `${netPrice.toLocaleString("tr-TR")} ₺ Öde`}
             </button>
 
             <button type="button" onClick={() => { setStep(1); setError(null); }}
