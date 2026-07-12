@@ -33,15 +33,20 @@ export function RichTextRenderer({ content, className }: Props) {
   let json: JSONContent | null = null;
 
   if (typeof content === "string") {
-    // Eski string açıklamaları düz metin olarak göster
-    return (
-      <div className={className}>
-        <p>{content}</p>
-      </div>
-    );
-  }
-
-  if (content && typeof content === "object") {
+    // pgbouncer/driver bazen jsonb'yi string olarak döner — önce parse dene
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed === "object") {
+        json = parsed as JSONContent;
+      }
+    } catch {
+      return (
+        <div className={className}>
+          <p>{content}</p>
+        </div>
+      );
+    }
+  } else if (content && typeof content === "object") {
     json = content as JSONContent;
   }
 

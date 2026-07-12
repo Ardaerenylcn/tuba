@@ -184,9 +184,14 @@ export function ProgramForm({ initial }: ProgramFormProps) {
     coverImagePosition: initial?.coverImagePosition ?? "center center",
   });
 
-  const [description, setDescription] = useState<JSONContent>(
-    (initial?.description as JSONContent | null | undefined) ?? { type: "doc", content: [] }
-  );
+  const [description, setDescription] = useState<JSONContent>(() => {
+    const raw = initial?.description;
+    if (!raw) return { type: "doc", content: [] };
+    if (typeof raw === "string") {
+      try { return JSON.parse(raw) as JSONContent; } catch { return { type: "doc", content: [] }; }
+    }
+    return raw as JSONContent;
+  });
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [catLoading, setCatLoading] = useState(true);
