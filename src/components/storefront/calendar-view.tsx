@@ -56,6 +56,18 @@ function fmtLongDate(key: string): string {
   }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
+function fmtDayShort(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Intl.DateTimeFormat("tr-TR", { timeZone: "UTC", day: "numeric", month: "long" })
+    .format(new Date(Date.UTC(y, m - 1, d)));
+}
+
+function fmtWeekday(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Intl.DateTimeFormat("tr-TR", { timeZone: "UTC", weekday: "long" })
+    .format(new Date(Date.UTC(y, m - 1, d)));
+}
+
 function pad(n: number) {
   return n < 10 ? `0${n}` : `${n}`;
 }
@@ -119,6 +131,15 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
     return m;
   }, [visibleSessions]);
 
+  // Mobil ajanda: tarihe göre kronolojik gruplar (sadece programı olan günler)
+  const agenda = useMemo(
+    () =>
+      [...byDay.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([key, items]) => ({ key, items })),
+    [byDay],
+  );
+
   // İlk oturumun ayı ve günü (başlangıç görünümü)
   const firstKey = sessions.length ? istKey(sessions[0].startAt) : todayKey;
   const [fy, fm] = firstKey.split("-").map(Number);
@@ -164,7 +185,8 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+      {/* ── MASAÜSTÜ: ay ızgarası + seçili gün paneli ── */}
+      <div className="hidden gap-6 md:grid md:grid-cols-1 lg:grid-cols-[1fr_360px]">
         {/* Takvim */}
         <div className="border border-[var(--border)] bg-[var(--surface)]">
           {/* Ay başlığı + navigasyon */}
@@ -282,53 +304,93 @@ export function CalendarView({ sessions, types }: { sessions: CalendarSession[];
               </div>
             ) : (
               <div className="flex flex-col divide-y divide-[var(--border)]">
-                {selectedSessions.map((s) => {
-                  const c = colorByType.get(s.programType);
-                  const spots = s.capacity - s.reserved;
-                  const full = spots <= 0;
-                  return (
-                    <div key={s.id} className="flex flex-col gap-2 p-5">
-                      <div className="flex items-center gap-2">
-                        <span className={`h-2 w-2 shrink-0 rounded-full ${c?.dot ?? "bg-stone-400"}`} />
-                        <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                          {nameByType.get(s.programType) ?? s.programType}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium leading-snug text-[var(--text-primary)]">{s.title}</p>
-
-                      <div className="flex flex-col gap-1 text-xs text-[var(--text-secondary)]">
-                        <span>🕐 {fmtTime(s.startAt)} – {fmtTime(s.endAt)}</span>
-                        {s.instructor && <span>👤 {s.instructor}</span>}
-                        {s.locationName && <span>📍 {s.locationName}</span>}
-                        <span className={full ? "text-red-600" : ""}>
-                          {full ? "Kontenjan dolu" : `${spots} kişilik yer kaldı`}
-                        </span>
-                      </div>
-
-                      <div className="mt-1 flex items-center justify-between">
-                        <span className="text-base font-medium text-[var(--text-primary)]">
-                          {s.price.toLocaleString("tr-TR")} ₺
-                        </span>
-                        {full ? (
-                          <span className="cursor-not-allowed bg-[var(--bg-subtle)] px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-[var(--text-disabled)]">
-                            Dolu
-                          </span>
-                        ) : (
-                          <Link
-                            href={`/rezervasyon?session=${s.id}`}
-                            className="bg-[var(--text-primary)] px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)]"
-                          >
-                            Kayıt Ol →
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {selectedSessions.map((s) => (
+                  <SessionCard
+                    key={s.id}
+                    s={s}
+                    dot={colorByType.get(s.programType)?.dot ?? "bg-stone-400"}
+                    typeName={nameByType.get(s.programType) ?? s.programType}
+                  />
+                ))}
               </div>
             )}
           </div>
         </aside>
+      </div>
+
+      {/* ── MOBİL: tarihe göre gruplu ajanda listesi ── */}
+      <div className="md:hidden">
+        {agenda.length === 0 ? (
+          <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-5 py-10 text-center">
+            <p className="text-sm text-[var(--text-muted)]">Bu filtre için program bulunamadı.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {agenda.map(({ key, items }) => (
+              <div key={key}>
+                {/* Gün başlığı */}
+                <div className="mb-2 flex items-baseline gap-2 border-b border-[var(--border)] pb-1.5">
+                  <p className="text-sm font-medium capitalize text-[var(--text-primary)]">{fmtDayShort(key)}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{fmtWeekday(key)}</p>
+                  <span className="ml-auto text-[11px] text-[var(--text-muted)]">{items.length} program</span>
+                </div>
+                {/* O günün oturumları */}
+                <div className="flex flex-col divide-y divide-[var(--border)] border border-[var(--border)] bg-[var(--surface)]">
+                  {items.map((s) => (
+                    <SessionCard
+                      key={s.id}
+                      s={s}
+                      dot={colorByType.get(s.programType)?.dot ?? "bg-stone-400"}
+                      typeName={nameByType.get(s.programType) ?? s.programType}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Bir oturum kartı (hem masaüstü panel hem mobil ajanda için)
+function SessionCard({ s, dot, typeName }: { s: CalendarSession; dot: string; typeName: string }) {
+  const spots = s.capacity - s.reserved;
+  const full = spots <= 0;
+  return (
+    <div className="flex flex-col gap-2 p-5">
+      <div className="flex items-center gap-2">
+        <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+        <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">{typeName}</span>
+      </div>
+      <p className="text-sm font-medium leading-snug text-[var(--text-primary)]">{s.title}</p>
+
+      <div className="flex flex-col gap-1 text-xs text-[var(--text-secondary)]">
+        <span>🕐 {fmtTime(s.startAt)} – {fmtTime(s.endAt)}</span>
+        {s.instructor && <span>👤 {s.instructor}</span>}
+        {s.locationName && <span>📍 {s.locationName}</span>}
+        <span className={full ? "text-red-600" : ""}>
+          {full ? "Kontenjan dolu" : `${spots} kişilik yer kaldı`}
+        </span>
+      </div>
+
+      <div className="mt-1 flex items-center justify-between">
+        <span className="text-base font-medium text-[var(--text-primary)]">
+          {s.price.toLocaleString("tr-TR")} ₺
+        </span>
+        {full ? (
+          <span className="cursor-not-allowed bg-[var(--bg-subtle)] px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-[var(--text-disabled)]">
+            Dolu
+          </span>
+        ) : (
+          <Link
+            href={`/rezervasyon?session=${s.id}`}
+            className="bg-[var(--text-primary)] px-5 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--surface)] transition-colors hover:bg-[var(--color-stone-700)]"
+          >
+            Kayıt Ol →
+          </Link>
+        )}
       </div>
     </div>
   );
