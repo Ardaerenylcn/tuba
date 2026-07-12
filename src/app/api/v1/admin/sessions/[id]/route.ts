@@ -89,7 +89,21 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       );
     }
 
-    await db.workshopSession.delete({ where: { id } });
+    // FK kısıtlaması: önce bağlı kayıtları sil (cancelled/completed dahil)
+    await db.$transaction(async (tx) => {
+      const sessionReservations = await tx.reservation.findMany({
+        where: { sessionId: id },
+        select: { id: true },
+      });
+      if (sessionReservations.length > 0) {
+        await tx.payment.deleteMany({
+          where: { reservationId: { in: sessionReservations.map((r) => r.id) } },
+        });
+        await tx.reservation.deleteMany({ where: { sessionId: id } });
+      }
+      await tx.workshopSession.delete({ where: { id } });
+    });
+
     return ok(null, "Oturum silindi.");
   } catch (err) {
     console.error("[DELETE /api/v1/admin/sessions/:id]", err);
