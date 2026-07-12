@@ -1,6 +1,12 @@
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma";
 import { db } from "@/lib/db";
-import { ok, created, badRequest, conflict, notFound, serverError, handleZodError } from "@/lib/api";
+import { created, badRequest, conflict, notFound, serverError, handleZodError } from "@/lib/api";
+import { getSession } from "@/lib/auth-server";
+
+// Aynı seansa ikinci kez rezervasyonu engelleyen "aktif" durumlar.
+// İptal/iade/gelmedi/tamamlandı yeni rezervasyona engel olmaz.
+const ACTIVE_STATUSES = ["pending", "confirmed", "waitlisted"] as const;
 
 const reservationSchema = z.object({
   sessionId: z.string().min(1),
@@ -25,6 +31,10 @@ export async function POST(request: Request) {
 
   const { sessionId, customerName, customerEmail, customerPhone, participantCount, notes, giftCardCode } =
     parsed.data;
+
+  // Giriş yapmışsa rezervasyonu kullanıcı hesabına bağla (hesabım/üye geçmişi için)
+  const authSession = await getSession();
+  const userId = authSession?.user?.id ?? null;
 
   try {
     const result = await db.$transaction(async (tx) => {
@@ -51,12 +61,14 @@ export async function POST(request: Request) {
         return { error: "no_capacity", available: availableSpots } as const;
       }
 
-      // Prevent duplicate reservation from same email for same session
+      // Yalnızca AYNI seansa yapılan gerçek mükerrer rezervasyonu engelle.
+      // Kullanıcı (varsa) veya e-posta eşleşmesine göre; iptal/başarısız ödeme engellemez.
       const existing = await tx.reservation.findFirst({
         where: {
           sessionId,
-          customerEmail,
-          status: { in: ["pending", "confirmed"] },
+          status: { in: [...ACTIVE_STATUSES] },
+          paymentStatus: { not: "failed" },
+          ...(userId ? { OR: [{ userId }, { customerEmail }] } : { customerEmail }),
         },
       });
       if (existing) return { error: "duplicate" } as const;
@@ -87,6 +99,7 @@ export async function POST(request: Request) {
       const reservation = await tx.reservation.create({
         data: {
           sessionId,
+          userId,
           customerName,
           customerEmail,
           customerPhone,
@@ -145,6 +158,10 @@ export async function POST(request: Request) {
 
     return created(result.reservation, "Rezervasyonunuz başarıyla oluşturuldu.");
   } catch (err) {
+    // Kısmi unique index (aynı seans+e-posta, aktif durum) ihlali → mükerrer
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return conflict("Bu e-posta adresiyle bu oturum için zaten aktif bir rezervasyon mevcut.");
+    }
     console.error("[POST /api/v1/reservations]", err);
     return serverError();
   }
