@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { membershipStatus } from "@/components/admin/member-actions";
+import { membershipStatus } from "@/lib/membership";
 import type { Metadata } from "next";
 import type { Prisma } from "@/generated/prisma";
 

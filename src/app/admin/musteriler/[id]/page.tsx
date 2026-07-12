@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { ReservationActions } from "@/components/admin/reservation-actions";
-import { MemberActions, membershipStatus } from "@/components/admin/member-actions";
+import { MemberActions } from "@/components/admin/member-actions";
+import { membershipStatus } from "@/lib/membership";
 import type { Metadata } from "next";
 
 interface Props {
