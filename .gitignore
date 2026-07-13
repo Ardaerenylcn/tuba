@@ -41,3 +41,11 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# gece-otomasyonu artıkları (repo dışı)
+CLAUDE_NIGHT_TASK.md
+claude-night.log
+claude-scheduler.log
+run-claude-night.sh
+run-claude-night.sh.disabled
+scratch-*.mjs

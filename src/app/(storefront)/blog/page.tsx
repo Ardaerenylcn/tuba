@@ -8,7 +8,10 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Blog | Tuba Atman Jewelry",
   description: "Takı tasarımı, el işçiliği ve atölye deneyimleri üzerine yazılar, ipuçları ve ilhamlar.",
-  alternates: { canonical: "/blog" },
+  alternates: {
+    canonical: "/blog",
+    types: { "application/rss+xml": "/blog/rss.xml" },
+  },
 };
 
 export const dynamic = "force-dynamic";
