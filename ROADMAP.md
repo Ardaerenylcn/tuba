@@ -54,9 +54,9 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 ## 8. Admin
 - [x] Dashboard grafikleri (recharts) — zaten mevcuttu, doğrulandı
 - [ ] Toplu işlemler
-- [ ] Gelişmiş filtre/arama/sayfalama
-- [ ] Audit log görünümü
-- [ ] Bildirimlerde gerçek zamanlı güncelleme
+- [x] Gelişmiş filtre/arama/sayfalama (rezervasyonlar: müşteri arama + sayfalama)
+- [x] Audit log görünümü — mevcut (filtre+sayfalama+tablo), doğrulandı
+- [~] Bildirim güncelleme — polling mevcut (setInterval); SSE/websocket yok
 - [ ] E-posta şablonu editörü
 
 ## 9. E-posta (Resend + react-email)

@@ -43,28 +43,44 @@ const FILTER_TABS = [
 ];
 
 interface Props {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; page?: string }>;
 }
 
+const PAGE_SIZE = 25;
+
 export default async function AdminReservationsPage({ searchParams }: Props) {
-  const { status: statusFilter } = await searchParams;
+  const { status: statusFilter, q: rawQ, page: rawPage } = await searchParams;
   const activeFilter = FILTER_TABS.find((t) => t.key === statusFilter)?.key ?? "all";
+  const q = (rawQ ?? "").trim();
+  const page = Math.max(1, Number.parseInt(rawPage ?? "1") || 1);
 
-  const where =
-    activeFilter !== "all"
+  const where = {
+    ...(activeFilter !== "all"
       ? { status: activeFilter as "pending" | "confirmed" | "cancelled" | "completed" | "refunded" | "waitlisted" | "no_show" }
-      : {};
+      : {}),
+    ...(q
+      ? {
+          OR: [
+            { customerName: { contains: q, mode: "insensitive" as const } },
+            { customerEmail: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
 
-  const [reservations, counts] = await Promise.all([
+  const [reservations, filteredCount, counts] = await Promise.all([
     db.reservation.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
       include: {
         session: {
           include: { program: { select: { title: true, type: true } } },
         },
       },
     }),
+    db.reservation.count({ where }),
     db.reservation.groupBy({
       by: ["status"],
       _count: { _all: true },
@@ -74,13 +90,24 @@ export default async function AdminReservationsPage({ searchParams }: Props) {
   const countMap: Record<string, number> = {};
   for (const c of counts) countMap[c.status] = c._count._all;
   const total = Object.values(countMap).reduce((a, b) => a + b, 0);
+  const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
+  const qs = (extra: Record<string, string | number>) => {
+    const p = new URLSearchParams();
+    if (activeFilter !== "all") p.set("status", activeFilter);
+    if (q) p.set("q", q);
+    for (const [k, v] of Object.entries(extra)) p.set(k, String(v));
+    const s = p.toString();
+    return s ? `?${s}` : "";
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-medium text-[var(--text-primary)]">Rezervasyonlar</h1>
-          <p className="text-sm text-[var(--text-muted)]">{total} toplam</p>
+          <p className="text-sm text-[var(--text-muted)]">
+            {q || activeFilter !== "all" ? `${filteredCount} sonuç · ${total} toplam` : `${total} toplam`}
+          </p>
         </div>
         {/* CSV indirme — sayfa değil, dosya indiren API ucu; <a> doğru kullanımdır */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -120,6 +147,26 @@ export default async function AdminReservationsPage({ searchParams }: Props) {
           );
         })}
       </div>
+
+      {/* Arama */}
+      <form action="/admin/rezervasyonlar" method="get" className="flex gap-2">
+        {activeFilter !== "all" && <input type="hidden" name="status" value={activeFilter} />}
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="Müşteri adı veya e-posta ara…"
+          className="h-9 w-full max-w-sm border border-[var(--border)] bg-[var(--bg)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]"
+          aria-label="Rezervasyon ara"
+        />
+        <button type="submit" className="h-9 shrink-0 border border-[var(--border)] px-4 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">
+          Ara
+        </button>
+        {q && (
+          <Link href={activeFilter !== "all" ? `/admin/rezervasyonlar?status=${activeFilter}` : "/admin/rezervasyonlar"} className="inline-flex h-9 items-center px-3 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+            Temizle
+          </Link>
+        )}
+      </form>
 
       {/* Table */}
       <div className="border border-[var(--border)] bg-[var(--surface)]">
@@ -195,6 +242,24 @@ export default async function AdminReservationsPage({ searchParams }: Props) {
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-[var(--text-muted)]">Sayfa {page} / {totalPages}</span>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link href={qs({ page: page - 1 })} className="inline-flex h-9 items-center border border-[var(--border)] px-4 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">
+                ← Önceki
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link href={qs({ page: page + 1 })} className="inline-flex h-9 items-center border border-[var(--border)] px-4 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">
+                Sonraki →
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
