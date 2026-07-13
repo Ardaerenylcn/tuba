@@ -111,13 +111,6 @@ export function SiteHeader({ announcement, logoUrl }: { announcement?: Announcem
 
             {/* Right icons */}
             <div className="flex items-center gap-4">
-              {/* Search */}
-              <button className="hidden md:flex text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" aria-label="Ara">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                  <circle cx="11" cy="11" r="7" /><path d="M16.5 16.5l4 4" />
-                </svg>
-              </button>
-
               {/* Account */}
               {user ? (
                 <div className="hidden md:flex items-center gap-3">
@@ -146,17 +139,18 @@ export function SiteHeader({ announcement, logoUrl }: { announcement?: Announcem
                 </Link>
               )}
 
-              {/* Wishlist */}
-              <button className="hidden md:flex text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" aria-label="Favoriler">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                  <path d="M12 21C12 21 3 13.5 3 8a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-9 13-9 13z" />
-                </svg>
+              {/* Rezervasyon — belirgin birincil aksiyon */}
+              <button
+                onClick={openModal}
+                className="hidden md:inline-flex h-9 items-center bg-[var(--text-primary)] px-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--surface)] transition-colors hover:bg-[var(--accent-hover)]"
+              >
+                Rezervasyon
               </button>
 
-              {/* Cart */}
-              <button onClick={openModal} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" aria-label="Rezervasyon">
+              {/* Mobil için ikon rezervasyon */}
+              <button onClick={openModal} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" aria-label="Rezervasyon">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                  <path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M3 7h18l-1 13a2 2 0 01-2 2H6a2 2 0 01-2-2L3 7z" />
                 </svg>
               </button>
 

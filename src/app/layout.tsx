@@ -16,6 +16,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com"),
   title: {
     default: "Tuba Atman Jewelry",
     template: "%s | Tuba Atman Jewelry",

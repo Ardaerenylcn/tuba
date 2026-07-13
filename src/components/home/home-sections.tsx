@@ -501,6 +501,75 @@ function AtolyeBizProgramCard({
   );
 }
 
+// Bölümün karşılama başlığı — sitedeki ilk içerik teması, güçlü ve merkezî.
+function AtolyeBizIntro({
+  config,
+  categories = [],
+}: {
+  config: AtolyeBizConfig;
+  categories?: HomeCategory[];
+}) {
+  const cta = (config.linkText ?? "Tüm Programları İncele").replace(/\s*→\s*$/, "");
+  return (
+    <FadeUp className="relative mx-auto mb-16 max-w-3xl text-center">
+      {/* Dekoratif flourish — yalnız kalan ♥ yerine */}
+      <div className="mb-7 flex items-center justify-center gap-4 text-[var(--text-muted)]">
+        <span className="h-px w-12 bg-[var(--border-strong)]" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="h-5 w-5" aria-hidden>
+          <path d="M12 3l3 5-3 13-3-13 3-5z" />
+          <path d="M9 8h6" />
+        </svg>
+        <span className="h-px w-12 bg-[var(--border-strong)]" />
+      </div>
+
+      <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.4em] text-[var(--text-muted)]">
+        El emeğiyle öğren
+      </p>
+
+      <h2
+        className="text-[clamp(2.4rem,6.5vw,4.75rem)] font-light leading-[0.98] tracking-tight text-[var(--text-primary)]"
+        style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 600, textTransform: "uppercase" }}
+      >
+        {config.heading}
+      </h2>
+
+      <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-[var(--text-secondary)]">
+        {config.description}
+      </p>
+
+      <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+        <Link
+          href="/programlar"
+          className="group inline-flex h-12 items-center gap-2 bg-[var(--text-primary)] px-8 text-[12px] font-semibold uppercase tracking-[0.15em] text-[var(--surface)] transition-colors hover:bg-[var(--accent-hover)]"
+        >
+          {cta}
+          <span className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden>→</span>
+        </Link>
+        <Link
+          href="/takvim"
+          className="inline-flex h-12 items-center text-[12px] font-semibold uppercase tracking-[0.15em] text-[var(--text-primary)] underline underline-offset-[6px] decoration-[var(--border-strong)] transition-colors hover:decoration-[var(--text-primary)]"
+        >
+          Takvime Bak
+        </Link>
+      </div>
+
+      {categories.length > 0 && (
+        <div className="mt-11 flex flex-wrap items-center justify-center gap-2.5">
+          {categories.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/${c.slug}`}
+              className="rounded-full border border-[var(--border)] bg-[var(--surface)]/60 px-4 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
+            >
+              {c.name}
+            </Link>
+          ))}
+        </div>
+      )}
+    </FadeUp>
+  );
+}
+
 export function AtolyeBizSection({
   workshops,
   categories = [],
@@ -526,25 +595,7 @@ export function AtolyeBizSection({
     return (
       <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)] py-20">
         <div className="mx-auto max-w-7xl px-6">
-          {/* Bölüm başlığı */}
-          <FadeUp className="mb-14 max-w-xl">
-            <h2
-              className="mb-3 text-[32px] leading-tight tracking-tight text-[var(--text-primary)]"
-              style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 700, textTransform: "uppercase" }}
-            >
-              {config.heading}
-            </h2>
-            <p className="mb-4 text-[var(--text-muted)] text-lg">♥</p>
-            <p className="text-[14px] leading-relaxed text-[var(--text-secondary)]">
-              {config.description}
-            </p>
-            <Link
-              href="/programlar"
-              className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-[var(--text-primary)] underline underline-offset-4 hover:text-[var(--text-secondary)] transition-colors"
-            >
-              {config.linkText}
-            </Link>
-          </FadeUp>
+          <AtolyeBizIntro config={config} categories={categories} />
 
           {/* Tip grupları */}
           <div className="flex flex-col gap-16">
@@ -600,22 +651,11 @@ export function AtolyeBizSection({
     );
   }
 
-  // Kategori de yok, program da yok — sadece başlık
+  // Kategori de yok, program da yok — sadece karşılama
   return (
     <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)] py-20">
       <div className="mx-auto max-w-7xl px-6">
-        <FadeUp className="max-w-xl">
-          <h2
-            className="mb-3 text-[32px] leading-tight tracking-tight text-[var(--text-primary)]"
-            style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontWeight: 700, textTransform: "uppercase" }}
-          >
-            {config.heading}
-          </h2>
-          <p className="mb-4 text-[var(--text-muted)] text-lg">♥</p>
-          <p className="text-[14px] leading-relaxed text-[var(--text-secondary)] max-w-xs">
-            {config.description}
-          </p>
-        </FadeUp>
+        <AtolyeBizIntro config={config} categories={categories} />
       </div>
     </section>
   );

@@ -38,7 +38,11 @@ export async function POST(request: Request) {
 
   try {
     const result = await db.$transaction(async (tx) => {
-      // Lock the session and count active reservations
+      // Seans satırını kilitle — eşzamanlı rezervasyonlarda kontenjan aşımını önler.
+      // Kilit, transaction sonuna kadar bu seansa yeni okuma/yazmayı sıraya sokar.
+      await tx.$queryRaw`SELECT id FROM workshop_sessions WHERE id = ${sessionId} FOR UPDATE`;
+
+      // Kilitli seansı çek ve aktif rezervasyonları say
       const session = await tx.workshopSession.findUnique({
         where: { id: sessionId },
         include: {
