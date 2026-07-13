@@ -33,8 +33,8 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [ ] Blog altı bülten CTA
 
 ## 4. Site içi arama
-- [ ] Global arama (program + blog + koleksiyon)
-- [ ] Header arama kutusu / ⌘K
+- [x] Global arama (`/ara` — program + blog)
+- [~] Header arama girişi (`/ara` ikonu eklendi; ⌘K paleti yok)
 
 ## 5. Favoriler
 - [ ] Favori programlar (hesaba bağlı istek listesi)
@@ -95,9 +95,9 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 
 ## 15. Güvenlik
 - [x] Güvenlik başlıkları (next.config)
-- [ ] Rate limiting (giriş/iletişim/rezervasyon)
+- [x] Rate limiting (iletişim + rezervasyon; bellek-içi)
 - [!] Form spam koruması (Turnstile/hCaptcha) — site key gerekir
-- [ ] Dosya yükleme doğrulaması sıkılaştırma
+- [x] Dosya yükleme doğrulaması (boyut+mime mevcut; uzantı mime'dan türetildi)
 
 ## 16. Analitik & izleme
 - [!] Vercel Analytics / GA4 — hesap/anahtar

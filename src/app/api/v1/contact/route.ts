@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { rateLimit, getClientIp, sweep } from "@/lib/rate-limit";
 
 const schema = z.object({
   name: z.string().min(2).max(100),
@@ -11,6 +12,15 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  sweep();
+  const rl = rateLimit(`contact:${getClientIp(req)}`, 5, 10 * 60_000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Çok fazla istek. Lütfen biraz sonra tekrar deneyin." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();

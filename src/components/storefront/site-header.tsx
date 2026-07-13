@@ -111,6 +111,13 @@ export function SiteHeader({ announcement, logoUrl }: { announcement?: Announcem
 
             {/* Right icons */}
             <div className="flex items-center gap-4">
+              {/* Arama */}
+              <Link href="/ara" className="hidden md:flex text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]" aria-label="Ara">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                  <circle cx="11" cy="11" r="7" /><path d="M16.5 16.5l4 4" />
+                </svg>
+              </Link>
+
               {/* Account */}
               {user ? (
                 <div className="hidden md:flex items-center gap-3">

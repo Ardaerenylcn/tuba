@@ -36,7 +36,11 @@ export async function POST(request: Request) {
   }
 
   const fileName = file instanceof File ? file.name : "upload";
-  const ext = fileName.split(".").pop() ?? "jpg";
+  // Uzantıyı kullanıcı dosya adından değil, doğrulanmış mime tipinden türet (güvenlik).
+  const EXT_BY_TYPE: Record<string, string> = {
+    "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif",
+  };
+  const ext = EXT_BY_TYPE[file.type] ?? "jpg";
   const storagePath = `programs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const supabase = createSupabaseAdmin();

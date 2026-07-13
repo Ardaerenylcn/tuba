@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma";
 import { db } from "@/lib/db";
 import { created, badRequest, conflict, notFound, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
+import { rateLimit, getClientIp, sweep } from "@/lib/rate-limit";
 
 // Aynı seansa ikinci kez rezervasyonu engelleyen "aktif" durumlar.
 // İptal/iade/gelmedi/tamamlandı yeni rezervasyona engel olmaz.
@@ -19,6 +20,15 @@ const reservationSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  sweep();
+  const rl = rateLimit(`reservation:${getClientIp(request)}`, 10, 10 * 60_000);
+  if (!rl.ok) {
+    return new Response(
+      JSON.stringify({ success: false, message: "Çok fazla rezervasyon denemesi. Lütfen biraz sonra tekrar deneyin.", errors: [] }),
+      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": String(rl.retryAfter) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
