@@ -9,6 +9,7 @@ const FILTER_TABS = [
   { key: "all", label: "Tümü" },
   { key: "pending", label: "Bekliyor" },
   { key: "confirmed", label: "Onaylandı" },
+  { key: "waitlisted", label: "Bekleme Listesi" },
   { key: "cancelled", label: "İptal" },
   { key: "completed", label: "Tamamlandı" },
 ];

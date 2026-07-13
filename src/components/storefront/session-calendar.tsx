@@ -185,11 +185,10 @@ export function SessionCalendar({ sessions, basePrice, currency }: Props) {
                   isSelected
                     ? "bg-[var(--text-primary)] text-[var(--surface)]"
                     : isFull
-                    ? "border border-[var(--border)] text-[var(--text-disabled)] cursor-not-allowed"
+                    ? "border border-[var(--border-strong)] text-[var(--text-muted)] hover:border-[var(--text-primary)]"
                     : "bg-[var(--text-primary)] text-[var(--surface)] opacity-80 hover:opacity-100"
                 }`}
-                disabled={isFull}
-                aria-label={`${day} ${MONTH_NAMES[viewMonth]}`}
+                aria-label={`${day} ${MONTH_NAMES[viewMonth]}${isFull ? " (dolu — bekleme listesi)" : ""}`}
                 aria-pressed={isSelected}
               >
                 {day}
@@ -275,7 +274,12 @@ export function SessionCalendar({ sessions, basePrice, currency }: Props) {
                 </div>
 
                 {isFull ? (
-                  <p className="text-center text-xs text-[var(--text-disabled)]">Kontenjan doldu</p>
+                  <Link
+                    href={`/rezervasyon?session=${s.id}`}
+                    className="block w-full border border-[var(--border-strong)] py-3 text-center text-xs font-medium uppercase tracking-[0.15em] text-[var(--text-primary)] transition-colors hover:bg-[var(--text-primary)] hover:text-[var(--surface)]"
+                  >
+                    Dolu · Bekleme Listesine Katıl
+                  </Link>
                 ) : (
                   <Link
                     href={`/rezervasyon?session=${s.id}`}

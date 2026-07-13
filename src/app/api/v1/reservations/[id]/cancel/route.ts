@@ -39,6 +39,21 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       // Kontenjan iadesi: oturum "full" ise tekrar "published"
       if (reservation.session.status === "full") {
         await tx.workshopSession.update({ where: { id: reservation.session.id }, data: { status: "published" } });
+
+        // Bekleme listesinde kişi varsa admini bilgilendir (yer açıldı)
+        const waitingCount = await tx.reservation.count({
+          where: { sessionId: reservation.session.id, status: "waitlisted" },
+        });
+        if (waitingCount > 0) {
+          await tx.notification.create({
+            data: {
+              type: "reservation",
+              title: "Bekleme listesinde yer açıldı",
+              body: `Bir iptal sonrası yer açıldı; bu seansın bekleme listesinde ${waitingCount} kişi var. Onaylamak için rezervasyonlara bakın.`,
+              link: "/admin/rezervasyonlar?status=waitlisted",
+            },
+          });
+        }
       }
 
       // Hediye kartı kullanıldıysa bakiyeyi iade et

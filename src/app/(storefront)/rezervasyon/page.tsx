@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { ReservationForm } from "@/components/storefront/reservation-form";
+import { WaitlistForm } from "@/components/storefront/waitlist-form";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Rezervasyon" };
@@ -33,15 +34,20 @@ async function ReservationPageContent({ sessionId }: { sessionId: string }) {
 
   const availableSpots = session.capacity - session._count.reservations;
   if (availableSpots <= 0) {
+    const whenStr = new Intl.DateTimeFormat("tr-TR", {
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul",
+    }).format(new Date(session.startAt));
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <p className="text-sm text-[var(--text-muted)]">Bu oturumun kontenjanı dolmuş.</p>
-        <Link
-          href={`/${session.program.type}/${session.program.slug}`}
-          className="text-xs underline underline-offset-4 text-[var(--text-secondary)]"
-        >
-          Diğer tarihleri gör
-        </Link>
+      <div className="mx-auto max-w-xl px-6 py-16">
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-[var(--text-muted)]">Bekleme Listesi</p>
+        <h1 className="mb-2 text-3xl font-light tracking-tight text-[var(--text-primary)]">{session.program.title}</h1>
+        <p className="mb-8 text-sm text-[var(--text-secondary)]">{whenStr}</p>
+        <WaitlistForm sessionId={session.id} maxParticipants={session.capacity} />
+        <div className="mt-6 text-center">
+          <Link href={`/${session.program.type}/${session.program.slug}`} className="text-xs text-[var(--text-secondary)] underline underline-offset-4 hover:text-[var(--text-primary)]">
+            Diğer tarihleri gör
+          </Link>
+        </div>
       </div>
     );
   }

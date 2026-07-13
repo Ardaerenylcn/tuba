@@ -7,7 +7,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 ---
 
 ## 1. Rezervasyon & Satış
-- [ ] Bekleme listesi (waitlist) uçtan uca
+- [x] Bekleme listesi (waitlist) — dolu seansta katılım + admin bildirim + admin panelde 'Bekleme Listesi' sekmesi (müşteriye otomatik e-posta → Resend domain gerektirir)
 - [!] Rezervasyon hatırlatma e-postaları — cron + Resend doğrulanmış domain gerekir
 - [x] Takvime ekle (.ics) — onay sayfasında indirilebilir
 - [ ] Rezervasyon erteleme/tarih değiştirme
