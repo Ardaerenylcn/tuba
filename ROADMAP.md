@@ -10,7 +10,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [x] Bekleme listesi (waitlist) — dolu seansta katılım + admin bildirim + admin panelde 'Bekleme Listesi' sekmesi (müşteriye otomatik e-posta → Resend domain gerektirir)
 - [!] Rezervasyon hatırlatma e-postaları — cron + Resend doğrulanmış domain gerekir
 - [x] Takvime ekle (.ics) — onay sayfasında indirilebilir
-- [ ] Rezervasyon erteleme/tarih değiştirme
+- [x] Rezervasyon erteleme/tarih değiştirme (hesabım'da aynı programın başka seansına taşıma)
 - [~] Rezervasyon onay e-postası — şablon yazılabilir; gönderim Resend domain doğrulaması ister
 - [!] Grup/özel etkinlik rezervasyonu — akış/fiyat kararı gerekir
 - [x] Doluluk / "son X yer" göstergesi (session-calendar) — doğrulandı

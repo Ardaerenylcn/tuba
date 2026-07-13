@@ -1,5 +1,6 @@
 "use client";
 
+import { RescheduleControl } from "@/components/storefront/reschedule-control";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -273,15 +274,18 @@ function ReservationCard({ r, index, muted = false, cancelable = false }: { r: R
           {r.notes && <Row label="Not" value={r.notes} />}
           {error && <p className="text-red-600">{error}</p>}
           {cancelable && (
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <a href={buildIcsHref(r)} download="atolye-rezervasyon.ics"
-                className="inline-flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">
-                📅 Takvime ekle
-              </a>
-              <button onClick={cancel} disabled={loading}
-                className="border border-red-200 px-3 py-1.5 text-[11px] font-medium text-red-600 transition-colors hover:border-red-400 disabled:opacity-50">
-                {loading ? "İptal ediliyor..." : "Rezervasyonu İptal Et"}
-              </button>
+            <div className="mt-1 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <a href={buildIcsHref(r)} download="atolye-rezervasyon.ics"
+                  className="inline-flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">
+                  📅 Takvime ekle
+                </a>
+                <button onClick={cancel} disabled={loading}
+                  className="border border-red-200 px-3 py-1.5 text-[11px] font-medium text-red-600 transition-colors hover:border-red-400 disabled:opacity-50">
+                  {loading ? "İptal ediliyor..." : "Rezervasyonu İptal Et"}
+                </button>
+              </div>
+              <RescheduleControl reservationId={r.id} />
             </div>
           )}
         </div>
