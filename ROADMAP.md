@@ -27,8 +27,8 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [x] 7 yazı + markalı kapak görselleri (önceki turda)
 - [x] RSS/Atom feed (`/blog/rss.xml`)
 - [x] Sitemap blog+program dahil (eksik route'lar eklendi, BASE düzeltildi)
-- [ ] Sosyal paylaş butonları
-- [ ] Okuma ilerleme çubuğu
+- [x] Sosyal paylaş butonları (WhatsApp/X/kopyala)
+- [x] Okuma ilerleme çubuğu
 - [ ] Kategori/etiket arşiv + yazar sayfası
 - [ ] Blog altı bülten CTA
 
@@ -47,12 +47,12 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [ ] Bülten abonelik yönetimi
 
 ## 7. Yorumlar / sosyal kanıt
-- [ ] Program detayında yıldız ortalaması + yorum sayısı
+- [x] Program detayında yıldız ortalaması + yorum sayısı + yorum bölümü
 - [!] Müşteriden otomatik yorum toplama — seans sonrası mail (Resend domain)
 - [ ] Ana sayfa yorum bölümü zenginleştirme
 
 ## 8. Admin
-- [ ] Dashboard grafikleri (recharts)
+- [x] Dashboard grafikleri (recharts) — zaten mevcuttu, doğrulandı
 - [ ] Toplu işlemler
 - [ ] Gelişmiş filtre/arama/sayfalama
 - [ ] Audit log görünümü
@@ -61,7 +61,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 
 ## 9. E-posta (Resend + react-email)
 - [~] Markalı e-posta şablonları — yazılabilir; gönderim domain doğrulaması ister
-- [ ] İletişim formu → admin'e mail + otomatik yanıt
+- [~] İletişim formu → admin'e mail (mevcut; kullanıcıya otomatik yanıt henüz yok)
 - [!] Toplu bülten gönderimi — Resend domain + abone listesi
 
 ## 10. Hediye kartı
@@ -70,9 +70,9 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [ ] Satın alma akışında şablon seçimi
 
 ## 11. SEO & içerik
-- [ ] Program structured data (Course/Event schema)
-- [ ] Review schema (yıldızlar Google'da)
-- [ ] Sayfa bazlı OG görseli (program/blog kapağı)
+- [x] Program structured data (Course + AggregateRating + Review)
+- [x] Review schema (Course içinde aggregateRating + review)
+- [x] Sayfa bazlı OG görseli (program+blog kapağı) — doğrulandı
 - [x] Markalı 404 / error sayfaları
 - [!] EN dil / hreflang — çeviri içeriği gerekir
 
@@ -90,7 +90,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 ## 14. Test & kalite
 - [!] E2E (Playwright) — kurulum + zaman
 - [ ] Birim testler (rezervasyon/hediye kartı mantığı)
-- [ ] CI (GitHub Actions: lint+typecheck+build)
+- [~] CI (GitHub Actions dosyası hazır; token `workflow` yetkisi olmadığı için elle eklenecek)
 - [ ] Kalan idiomatik lint uyarılarını kapat
 
 ## 15. Güvenlik

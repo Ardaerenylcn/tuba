@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPostBySlug, getOtherPosts, readingTimeMinutes } from "@/lib/blog";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
 import { BlogCoverFallback } from "@/components/storefront/blog-cover-fallback";
+import { ReadingProgress, ShareButtons } from "@/components/storefront/blog-extras";
 import type { Metadata } from "next";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com";
@@ -64,6 +65,7 @@ export default async function BlogPostPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 sm:py-14">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <ReadingProgress />
 
       {/* Breadcrumb */}
       <nav className="mb-8 flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
@@ -102,6 +104,10 @@ export default async function BlogPostPage({ params }: Props) {
               <span>{minutes} dk okuma</span>
             </div>
           </header>
+
+          <div className="mb-8">
+            <ShareButtons url={`${BASE}/blog/${post.slug}`} title={post.title} />
+          </div>
 
           {/* Kapak yalnızca görsel varsa — görselsizken boş kutu bırakılmaz */}
           {post.coverImage?.url && (

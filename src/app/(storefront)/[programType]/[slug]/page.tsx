@@ -5,7 +5,22 @@ import { SessionCalendar } from "@/components/storefront/session-calendar";
 import { FAQAccordion } from "@/components/storefront/faq-accordion";
 import { ProgramGallery } from "@/components/storefront/program-gallery";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
+import { getProgramReviews } from "@/lib/reviews";
 import type { Metadata } from "next";
+
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com";
+
+function Stars({ rating, className = "" }: { rating: number; className?: string }) {
+  return (
+    <span className={`inline-flex gap-0.5 ${className}`} aria-label={`${rating} / 5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} viewBox="0 0 20 20" className="h-3.5 w-3.5" fill={i <= Math.round(rating) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.2" aria-hidden>
+          <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 15l-5.2 2.6 1-5.8L1.5 7.7l5.9-.9L10 1.5z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
 
 interface Props {
   params: Promise<{ programType: string; slug: string }>;
@@ -73,8 +88,40 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
     availableSpots: s.capacity - s._count.reservations,
   }));
 
+  const reviews = await getProgramReviews(program.id, 8);
+  const avgRating = reviews.length
+    ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+    : 0;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: program.title,
+    description: program.shortDescription,
+    provider: { "@type": "Organization", name: "Tuba Atman Jewelry", sameAs: BASE },
+    ...(program.coverImage?.url ? { image: program.coverImage.url } : {}),
+    ...(reviews.length
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: avgRating,
+            reviewCount: reviews.length,
+            bestRating: 5,
+          },
+          review: reviews.slice(0, 5).map((r) => ({
+            "@type": "Review",
+            author: { "@type": "Person", name: r.name },
+            reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+            reviewBody: r.body,
+            datePublished: r.createdAt,
+          })),
+        }
+      : {}),
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_360px]">
         <div>
           <nav className="mb-8 flex items-center gap-2 text-xs text-[var(--text-muted)]" aria-label="Breadcrumb">
@@ -150,6 +197,28 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
             <div className="mb-12">
               <h2 className="mb-6 text-xl font-light text-[var(--text-primary)]">Sık Sorulan Sorular</h2>
               <FAQAccordion items={program.faqs.map((f) => ({ q: f.question, a: f.answer }))} />
+            </div>
+          )}
+
+          {reviews.length > 0 && (
+            <div className="mb-4 border-t border-[var(--border)] pt-10">
+              <div className="mb-6 flex items-center gap-3">
+                <h2 className="text-xl font-light text-[var(--text-primary)]">Katılımcı Yorumları</h2>
+                <span className="flex items-center gap-1.5 text-[var(--accent)]">
+                  <Stars rating={avgRating} />
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{avgRating.toFixed(1)}</span>
+                  <span className="text-xs text-[var(--text-muted)]">({reviews.length})</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                {reviews.map((r) => (
+                  <figure key={r.id} className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--surface)] p-5">
+                    <Stars rating={r.rating} className="text-[var(--accent)]" />
+                    <blockquote className="text-sm leading-relaxed text-[var(--text-secondary)]">“{r.body}”</blockquote>
+                    <figcaption className="text-xs font-medium text-[var(--text-primary)]">{r.name}</figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
           )}
         </div>

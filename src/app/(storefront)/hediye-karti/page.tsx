@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { GiftCardForm } from "@/components/storefront/gift-card-form";
 import type { Metadata } from "next";
 
@@ -29,6 +30,9 @@ export default function HediyeKartiPage() {
           e-posta adresine anında gönderilir; alıcı <strong>1 yıl boyunca</strong> kendine
           uygun bir atölye ve tarih seçerek dilediği zaman kullanabilir.
         </p>
+        <Link href="/hediye-karti/bakiye" className="mt-4 inline-flex items-center gap-1.5 text-sm text-[var(--accent)] underline underline-offset-4 hover:text-[var(--accent-hover)]">
+          Elimde kart var — bakiye sorgula →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_300px]">
