@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getPostBySlug, getRelatedPosts } from "@/lib/blog";
+import { getPostBySlug, getOtherPosts, readingTimeMinutes } from "@/lib/blog";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
+import { BlogCoverFallback } from "@/components/storefront/blog-cover-fallback";
 import type { Metadata } from "next";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com";
@@ -44,7 +45,8 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const related = await getRelatedPosts({ id: post.id, category: post.category, tags: post.tags }, 3);
+  const others = await getOtherPosts(post.id, 5);
+  const minutes = readingTimeMinutes(post.content);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -60,54 +62,111 @@ export default async function BlogPostPage({ params }: Props) {
   };
 
   return (
-    <article className="mx-auto max-w-3xl px-6 py-16">
+    <div className="mx-auto max-w-6xl px-6 py-10 sm:py-14">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <Link href="/blog" className="mb-8 inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">← Blog</Link>
+      {/* Breadcrumb */}
+      <nav className="mb-8 flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+        <Link href="/blog" className="transition-colors hover:text-[var(--text-primary)]">Blog</Link>
+        {post.category && (
+          <>
+            <span className="text-[var(--text-disabled)]">/</span>
+            <Link href={`/blog?kategori=${encodeURIComponent(post.category)}`} className="transition-colors hover:text-[var(--text-primary)]">{post.category}</Link>
+          </>
+        )}
+      </nav>
 
-      <header className="mb-8 flex flex-col gap-4">
-        {post.category && <span className="text-[10px] font-medium uppercase tracking-[0.25em] text-[var(--text-muted)]">{post.category}</span>}
-        <h1 className="text-3xl font-light leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl">{post.title}</h1>
-        <p className="text-sm text-[var(--text-muted)]">{post.authorName} · {fmtDate(post.publishedAt)}</p>
-      </header>
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">
+        {/* ── Ana içerik ─────────────────────────────────────────── */}
+        <article className="min-w-0">
+          <header className="mb-8 border-b border-[var(--border)] pb-8">
+            {post.category && (
+              <span className="mb-4 inline-block text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--accent)]">
+                {post.category}
+              </span>
+            )}
+            <h1
+              className="text-[clamp(2rem,5vw,3.25rem)] font-light leading-[1.08] tracking-tight text-[var(--text-primary)]"
+              style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
+            >
+              {post.title}
+            </h1>
+            {post.excerpt && (
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">{post.excerpt}</p>
+            )}
+            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--text-muted)]">
+              <span className="font-medium text-[var(--text-secondary)]">{post.authorName}</span>
+              <span className="text-[var(--text-disabled)]">·</span>
+              <span>{fmtDate(post.publishedAt)}</span>
+              <span className="text-[var(--text-disabled)]">·</span>
+              <span>{minutes} dk okuma</span>
+            </div>
+          </header>
 
-      {post.coverImage?.url && (
-        <div className="relative mb-10 aspect-[16/9] overflow-hidden bg-[var(--bg-subtle)]">
-          <Image src={post.coverImage.url} alt={post.title} fill sizes="(max-width:768px) 100vw, 768px" className="object-cover" priority />
-        </div>
-      )}
+          {/* Kapak yalnızca görsel varsa — görselsizken boş kutu bırakılmaz */}
+          {post.coverImage?.url && (
+            <figure className="relative mb-10 aspect-[16/9] overflow-hidden rounded-sm bg-[var(--bg-subtle)]">
+              <Image src={post.coverImage.url} alt={post.title} fill sizes="(max-width:1024px) 100vw, 700px" className="object-cover" priority />
+            </figure>
+          )}
 
-      <div className="prose-tuba">
-        <RichTextRenderer content={post.content} />
-      </div>
-
-      {post.tags.length > 0 && (
-        <div className="mt-10 flex flex-wrap gap-2 border-t border-[var(--border)] pt-6">
-          {post.tags.map((t) => (
-            <Link key={t} href={`/blog?etiket=${encodeURIComponent(t)}`} className="border border-[var(--border)] px-3 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">#{t}</Link>
-          ))}
-        </div>
-      )}
-
-      {related.length > 0 && (
-        <section className="mt-16 border-t border-[var(--border)] pt-10">
-          <h2 className="mb-6 text-sm font-medium uppercase tracking-widest text-[var(--text-muted)]">İlgili Yazılar</h2>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {related.map((r) => (
-              <Link key={r.id} href={`/blog/${r.slug}`} className="group flex flex-col gap-2">
-                <div className="relative aspect-[3/2] overflow-hidden bg-[var(--bg-subtle)]">
-                  {r.coverImage?.url ? (
-                    <Image src={r.coverImage.url} alt={r.title} fill sizes="(max-width:640px) 100vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center text-[var(--text-disabled)]">✎</span>
-                  )}
-                </div>
-                <h3 className="text-sm font-medium leading-snug text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">{r.title}</h3>
-              </Link>
-            ))}
+          <div className="rich-content max-w-none text-[15.5px] leading-[1.85]">
+            <RichTextRenderer content={post.content} />
           </div>
-        </section>
-      )}
-    </article>
+
+          {post.tags.length > 0 && (
+            <div className="mt-12 flex flex-wrap items-center gap-2 border-t border-[var(--border)] pt-8">
+              <span className="mr-1 text-xs text-[var(--text-muted)]">Etiketler:</span>
+              {post.tags.map((t) => (
+                <Link key={t} href={`/blog?etiket=${encodeURIComponent(t)}`} className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">#{t}</Link>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-10">
+            <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]">
+              <span aria-hidden>←</span> Tüm yazılar
+            </Link>
+          </div>
+        </article>
+
+        {/* ── Kenar çubuğu: diğer yazılar ────────────────────────── */}
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="border-t-2 border-[var(--text-primary)] pt-4">
+            <h2 className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-primary)]">Diğer Yazılar</h2>
+            {others.length === 0 ? (
+              <p className="text-sm text-[var(--text-muted)]">Başka yazı yok.</p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-[var(--border)]">
+                {others.map((o) => (
+                  <li key={o.id}>
+                    <Link href={`/blog/${o.slug}`} className="group flex gap-3.5 py-4">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-[var(--bg-subtle)]">
+                        {o.coverImage?.url ? (
+                          <Image src={o.coverImage.url} alt={o.title} fill sizes="64px" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                        ) : (
+                          <BlogCoverFallback seed={o.slug} label={o.title} compact />
+                        )}
+                      </div>
+                      <div className="flex min-w-0 flex-col justify-center gap-1">
+                        {o.category && (
+                          <span className="text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--text-muted)]">{o.category}</span>
+                        )}
+                        <h3 className="line-clamp-2 text-[13.5px] font-medium leading-snug text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">{o.title}</h3>
+                        <span className="text-[11px] text-[var(--text-muted)]">{fmtDate(o.publishedAt)}</span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <Link href="/blog" className="mt-5 inline-flex text-xs font-medium uppercase tracking-[0.15em] text-[var(--accent)] transition-colors hover:text-[var(--accent-hover)]">
+              Tümünü gör →
+            </Link>
+          </div>
+        </aside>
+      </div>
+    </div>
   );
 }

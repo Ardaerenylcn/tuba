@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getPublishedPosts, getBlogTaxonomy } from "@/lib/blog";
+import { BlogCoverFallback } from "@/components/storefront/blog-cover-fallback";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -28,7 +29,7 @@ function PostCard({ post, large = false }: { post: Awaited<ReturnType<typeof get
           <Image src={post.coverImage.url} alt={post.title} fill sizes={large ? "(max-width:1024px) 100vw, 66vw" : "(max-width:640px) 100vw, 33vw"}
             className="object-cover transition-transform duration-700 group-hover:scale-105" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-[var(--text-disabled)]">✎</span>
+          <BlogCoverFallback seed={post.slug} label={post.title} compact={!large} />
         )}
       </div>
       <div className="flex flex-col gap-1.5">

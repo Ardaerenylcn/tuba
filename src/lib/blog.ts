@@ -51,6 +51,34 @@ export async function getRelatedPosts(post: { id: string; category: string | nul
   });
 }
 
+// Kenar çubuğu için: geçerli yazı hariç en yeni yayınlanmış yazılar.
+export async function getOtherPosts(excludeId: string, limit = 5) {
+  return db.blogPost.findMany({
+    where: { ...publicWhere(), id: { not: excludeId } },
+    orderBy: [{ featured: "desc" }, { publishedAt: "desc" }],
+    take: limit,
+    select: listSelect,
+  });
+}
+
+// Tiptap JSON içeriğinden yaklaşık okuma süresi (dakika).
+function collectText(node: unknown): string {
+  if (!node || typeof node !== "object") return "";
+  const n = node as { text?: string; content?: unknown[] };
+  let out = typeof n.text === "string" ? n.text + " " : "";
+  if (Array.isArray(n.content)) for (const c of n.content) out += collectText(c);
+  return out;
+}
+
+export function readingTimeMinutes(content: unknown): number {
+  let json = content;
+  if (typeof content === "string") {
+    try { json = JSON.parse(content); } catch { json = null; }
+  }
+  const words = collectText(json).trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 export async function getBlogTaxonomy() {
   const posts = await db.blogPost.findMany({ where: publicWhere(), select: { category: true, tags: true } });
   const categories = [...new Set(posts.map((p) => p.category).filter(Boolean))] as string[];
