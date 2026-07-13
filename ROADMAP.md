@@ -9,11 +9,11 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 ## 1. Rezervasyon & Satış
 - [ ] Bekleme listesi (waitlist) uçtan uca
 - [!] Rezervasyon hatırlatma e-postaları — cron + Resend doğrulanmış domain gerekir
-- [ ] Takvime ekle (.ics)
+- [x] Takvime ekle (.ics) — onay sayfasında indirilebilir
 - [ ] Rezervasyon erteleme/tarih değiştirme
 - [~] Rezervasyon onay e-postası — şablon yazılabilir; gönderim Resend domain doğrulaması ister
 - [!] Grup/özel etkinlik rezervasyonu — akış/fiyat kararı gerekir
-- [ ] Doluluk / "son X yer" göstergesi
+- [x] Doluluk / "son X yer" göstergesi (session-calendar) — doğrulandı
 
 ## 2. Ödeme (İyzico)
 - [!] İyzico webhook tamamlama/doğrulama — İyzico test anahtarları + canlı ödeme mantığı
@@ -40,7 +40,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [ ] Favori programlar (hesaba bağlı istek listesi)
 
 ## 6. Kullanıcı hesabı
-- [ ] Profil düzenleme (ad/telefon/şifre)
+- [x] Profil düzenleme (ad/telefon) — mevcut, doğrulandı
 - [ ] Rezervasyon dekontu indirme
 - [!] E-posta doğrulama açma — deliverability/karar
 - [!] Google ile giriş — Google OAuth kimlik bilgileri
