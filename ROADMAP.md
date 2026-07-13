@@ -41,10 +41,10 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 
 ## 6. Kullanıcı hesabı
 - [x] Profil düzenleme (ad/telefon) — mevcut, doğrulandı
-- [ ] Rezervasyon dekontu indirme
+- [~] Rezervasyon dekontu — hesabım'da .ics takvim indirme eklendi (PDF dekont yok)
 - [!] E-posta doğrulama açma — deliverability/karar
 - [!] Google ile giriş — Google OAuth kimlik bilgileri
-- [ ] Bülten abonelik yönetimi
+- [!] Bülten abonelik yönetimi — Subscriber modeli + DB migration gerekir (kararın)
 
 ## 7. Yorumlar / sosyal kanıt
 - [x] Program detayında yıldız ortalaması + yorum sayısı + yorum bölümü
@@ -84,7 +84,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 
 ## 13. Erişilebilirlik
 - [ ] Renk kontrastı denetimi
-- [ ] focus-visible + klavye navigasyonu
+- [x] focus-visible (mevcut) + skip-to-content linki eklendi
 - [ ] alt / aria-live / modal focus trap
 
 ## 14. Test & kalite

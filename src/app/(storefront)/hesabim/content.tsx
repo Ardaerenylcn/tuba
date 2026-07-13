@@ -164,6 +164,26 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
   );
 }
 
+function buildIcsHref(r: Reservation): string {
+  const toICS = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Tuba Atman Jewelry//Atolye Biz//TR",
+    "BEGIN:VEVENT",
+    `UID:${r.id}@tubaatman.com`,
+    `DTSTAMP:${toICS(new Date().toISOString())}`,
+    `DTSTART:${toICS(r.session.startAt)}`,
+    `DTEND:${toICS(r.session.endAt)}`,
+    `SUMMARY:${r.session.program.title}`,
+    r.session.locationName ? `LOCATION:${r.session.locationName}` : "",
+    "DESCRIPTION:Atölye Biz rezervasyonu",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].filter(Boolean).join("\r\n");
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
 function ReservationCard({ r, index, muted = false, cancelable = false }: { r: Reservation; index: number; muted?: boolean; cancelable?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -253,10 +273,16 @@ function ReservationCard({ r, index, muted = false, cancelable = false }: { r: R
           {r.notes && <Row label="Not" value={r.notes} />}
           {error && <p className="text-red-600">{error}</p>}
           {cancelable && (
-            <button onClick={cancel} disabled={loading}
-              className="mt-1 self-start border border-red-200 px-3 py-1.5 text-[11px] font-medium text-red-600 transition-colors hover:border-red-400 disabled:opacity-50">
-              {loading ? "İptal ediliyor..." : "Rezervasyonu İptal Et"}
-            </button>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <a href={buildIcsHref(r)} download="atolye-rezervasyon.ics"
+                className="inline-flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]">
+                📅 Takvime ekle
+              </a>
+              <button onClick={cancel} disabled={loading}
+                className="border border-red-200 px-3 py-1.5 text-[11px] font-medium text-red-600 transition-colors hover:border-red-400 disabled:opacity-50">
+                {loading ? "İptal ediliyor..." : "Rezervasyonu İptal Et"}
+              </button>
+            </div>
           )}
         </div>
       )}
