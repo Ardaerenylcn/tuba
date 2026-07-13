@@ -176,6 +176,7 @@ export default function HakkimizdaAdminPage() {
           previewUrl={form.heroImageUrl}
           onChange={(id, url) => setForm((p) => ({ ...p, heroImageId: id, heroImageUrl: url }))}
           onClear={() => setForm((p) => ({ ...p, heroImageId: null, heroImageUrl: DEFAULTS.heroImageUrl }))}
+          aspect={16 / 9}
         />
         <div className="grid grid-cols-2 gap-4">
           <Field label="Üst metin">
@@ -209,6 +210,7 @@ export default function HakkimizdaAdminPage() {
           previewUrl={form.storyImageUrl}
           onChange={(id, url) => setForm((p) => ({ ...p, storyImageId: id, storyImageUrl: url }))}
           onClear={() => setForm((p) => ({ ...p, storyImageId: null, storyImageUrl: DEFAULTS.storyImageUrl }))}
+          aspect={4 / 3}
         />
         <Field label="Yıl / etiket">
           <input className={inputCls} value={form.storyYearLabel} onChange={(e) => set("storyYearLabel", e.target.value)} placeholder="Başlangıç · 2016" />
@@ -279,6 +281,7 @@ export default function HakkimizdaAdminPage() {
           previewUrl={form.bannerImageUrl}
           onChange={(id, url) => setForm((p) => ({ ...p, bannerImageId: id, bannerImageUrl: url }))}
           onClear={() => setForm((p) => ({ ...p, bannerImageId: null, bannerImageUrl: DEFAULTS.bannerImageUrl }))}
+          aspect={16 / 9}
         />
         <Field label="Bant alıntısı">
           <input className={inputCls} value={form.bannerQuote} onChange={(e) => set("bannerQuote", e.target.value)} placeholder="Kendi takını yaratmanın zamanı geldi." />

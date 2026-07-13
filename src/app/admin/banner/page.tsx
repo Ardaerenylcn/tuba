@@ -132,6 +132,7 @@ export default function BannerPage() {
           previewUrl={form.imageUrl}
           onChange={(id, url) => setForm((prev) => ({ ...prev, imageId: id, imageUrl: url, }))}
           onClear={() => setForm((prev) => ({ ...prev, imageId: null, imageUrl: DEFAULTS.imageUrl }))}
+          aspect={16 / 9}
         />
         <p className="text-[11px] text-[var(--text-disabled)]">
           Galerideki bir görseli seçin ya da yeni yükleyin. Önerilen: en az 1920×1080px.
