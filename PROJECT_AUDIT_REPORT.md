@@ -110,6 +110,37 @@ Geçersiz slug'lar (blog, koleksiyon) beklendiği gibi düzgün 404 veriyor.
 
 ---
 
+## Ek Tur (2026-07-13, 2. oturum): Bağımsız Doğrulama + Lint Temizliği
+
+Önceki turun iddiaları körlemesine kabul edilmeden **çalışan dev sunucusu ve taze build üzerinde bağımsız olarak** yeniden doğrulandı.
+
+### Canlı route doğrulaması (HTTP)
+Çalışan dev sunucusunda (`localhost:3000`) gerçek HTTP istekleriyle:
+- **Public route'lar (16):** `/`, `/programlar`, `/takvim`, `/blog`, `/koleksiyonlar`, `/hakkimizda`, `/iletisim`, `/sss`, `/galeri`, `/rezervasyon`, `/yasal/*` (3), `/giris`, `/kayit` → **hepsi 200**.
+- **Korumalı route'lar:** `/hesabim` ve `/admin` → **307 redirect** (giriş yoksa) — beklenen davranış.
+- **Blog uçtan uca:** `/blog` listesi **7 yayınlanmış yazı** render ediyor; her yazı slug'ı detayda **200**; geçersiz slug (`/blog/bu-slug-yok-12345`) → **düzgün 404**. Blog 404 sorununun gerçekten çözüldüğü doğrulandı.
+
+### Güvenlik — bağımsız kod doğrulaması
+- **Rezervasyon iptali (IDOR):** `cancel/route.ts` sahiplik kontrolü `reservation.userId === auth.user.id || customerEmail eşleşmesi`; değilse `forbidden`. **IDOR yok** — doğrulandı.
+- **`/hesabim` izolasyonu:** `requireAuth()` + `where: { OR: [{ userId }, { customerEmail: user.email }] }`. Kullanıcı yalnızca kendi rezervasyonlarını görüyor — doğrulandı.
+- **Blog XSS:** İçerik admin/editör tarafından Tiptap **JSON** olarak yazılıyor; `generateHTML` kısıtlı bir düğüm/mark setiyle render ediyor (ham HTML enjeksiyonu yok). Düşük risk.
+
+### Lint temizliği (bu turda uygulandı)
+Gerçek lint **hataları 17 → 7'ye** düşürüldü (kalan 7'nin tamamı idiomatik SSR-mount `setState` kalıbı; fonksiyonel hata değil, build'i engellemiyor):
+- `src/lib/api.ts` — `handleZodError`'daki 2 `any` kaldırıldı (tiplenmiş fallback).
+- `src/app/api/v1/admin/programs/route.ts` + `[id]/route.ts` — audit log `oldValue`/`newValue` için 4 `any` → `Prisma.InputJsonValue` cast'ine çevrildi (davranış korundu).
+- `src/app/admin/site/logo/page.tsx` — 4 kaçırılmamış karakter (`'`, `"`) HTML entity'lerine çevrildi.
+
+### Kalite kapıları (bu tur)
+| Kontrol | Komut | Sonuç |
+|--------|-------|-------|
+| TypeScript | `tsc --noEmit` | ✅ 0 hata |
+| ESLint | `eslint .` | ✅ 17 → 7 hata (kalan 7 idiomatik `set-state-in-effect`) |
+| Production build | `next build` | ✅ Başarılı (exit 0), lint fix'leri sonrası tekrar |
+| Canlı route taraması | dev sunucu curl (18 route) | ✅ Public 200, korumalı 307, blog uçtan uca doğru |
+
+---
+
 ## Ek Tur: Admin Fonksiyonel Test + Responsive Denetim
 
 Bu tur, geçici bir admin oturum çerezi (better-auth imzalı, test sonrası DB'den silindi) ile admin modülleri **kimlik doğrulamalı** olarak uçtan uca test edildi.

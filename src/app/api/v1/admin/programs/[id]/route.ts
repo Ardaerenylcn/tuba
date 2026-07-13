@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
+import type { Prisma } from "@/generated/prisma";
 import { ok, badRequest, forbidden, notFound, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
 
@@ -87,8 +88,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         action: "program.update",
         entityType: "Program",
         entityId: program.id,
-        oldValue: existing as any,
-        newValue: program as any,
+        oldValue: existing as unknown as Prisma.InputJsonValue,
+        newValue: program as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -124,7 +125,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
         action: "program.delete",
         entityType: "Program",
         entityId: id,
-        oldValue: existing as any,
+        oldValue: existing as unknown as Prisma.InputJsonValue,
       },
     });
 

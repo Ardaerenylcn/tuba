@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
+import type { Prisma } from "@/generated/prisma";
 import { ok, created, badRequest, forbidden, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
 
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
         action: "program.create",
         entityType: "Program",
         entityId: program.id,
-        newValue: program as any,
+        newValue: program as unknown as Prisma.InputJsonValue,
       },
     });
 

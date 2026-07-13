@@ -48,7 +48,8 @@ export function serverError(message = "Internal server error"): NextResponse<Api
 }
 
 export function handleZodError(error: ZodError): NextResponse<ApiError> {
-  const issues = error.issues ?? (error as any).errors ?? [];
-  const errors = issues.map((e: any) => `${e.path.join(".")}: ${e.message}`);
+  const issues =
+    error.issues ?? (error as unknown as { errors?: ZodError["issues"] }).errors ?? [];
+  const errors = issues.map((e) => `${e.path.join(".")}: ${e.message}`);
   return badRequest("Validation failed", errors);
 }

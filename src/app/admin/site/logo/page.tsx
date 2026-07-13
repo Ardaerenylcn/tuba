@@ -59,7 +59,7 @@ export default function LogoPage() {
       <div className="mb-6">
         <h1 className="text-xl font-medium text-[var(--text-primary)]">Site Logosu</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Header'da "tuba atman jewelry" yazısının yanında gösterilecek logo görseli.
+          Header&apos;da &quot;tuba atman jewelry&quot; yazısının yanında gösterilecek logo görseli.
         </p>
       </div>
 
@@ -80,7 +80,7 @@ export default function LogoPage() {
           />
 
           <p className="text-[11px] text-[var(--text-disabled)]">
-            Şeffaf arka planlı PNG önerilir. Kırpma ekranında logoyu yakınlaştırıp kenar boşluklarını kırparsanız header'da daha büyük ve net görünür.
+            Şeffaf arka planlı PNG önerilir. Kırpma ekranında logoyu yakınlaştırıp kenar boşluklarını kırparsanız header&apos;da daha büyük ve net görünür.
           </p>
         </div>
 
