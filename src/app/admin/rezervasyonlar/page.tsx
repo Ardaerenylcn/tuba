@@ -82,8 +82,11 @@ export default async function AdminReservationsPage({ searchParams }: Props) {
           <h1 className="text-xl font-medium text-[var(--text-primary)]">Rezervasyonlar</h1>
           <p className="text-sm text-[var(--text-muted)]">{total} toplam</p>
         </div>
+        {/* CSV indirme — sayfa değil, dosya indiren API ucu; <a> doğru kullanımdır */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/api/v1/admin/export/reservations"
+          download
           className="inline-flex h-9 items-center gap-2 border border-[var(--border)] px-4 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
         >
           CSV İndir

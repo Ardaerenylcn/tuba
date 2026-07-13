@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ForgotPasswordForm } from "./form";
 import type { Metadata } from "next";
 
@@ -22,9 +23,9 @@ export default function ForgotPasswordPage() {
 
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
         Hatırladınız mı?{" "}
-        <a href="/giris" className="text-[var(--text-primary)] underline underline-offset-4">
+        <Link href="/giris" className="text-[var(--text-primary)] underline underline-offset-4">
           Giriş yapın
-        </a>
+        </Link>
       </p>
     </div>
   );

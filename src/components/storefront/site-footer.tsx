@@ -25,39 +25,39 @@ export async function SiteFooter() {
 
   const columns = [
     {
-      title: "Alışveriş",
+      title: "Keşfet",
       links: [
         { href: "/koleksiyonlar", label: "Koleksiyonlar" },
-        { href: "/koleksiyonlar/yeni", label: "Yeni Ürünler" },
-        { href: "/koleksiyonlar/populer", label: "En Çok Tercih Edilenler" },
+        { href: "/galeri", label: "Galeri" },
         { href: "/hediye-karti", label: "Hediye Kartı" },
+        { href: "/blog", label: "Blog" },
       ],
     },
     {
-      title: "Atölye Biz",
+      title: "Programlar",
       links: [
-        { href: "/atolyeler/jewelry-courses", label: "Jewelry Courses" },
-        { href: "/atolyeler/wax-carving", label: "Wax Carving Workshops" },
-        { href: "/atolyeler/private-lessons", label: "Private Lessons" },
-        { href: "/atolyeler", label: "Atölye Takvimi" },
+        { href: "/atolyeler", label: "Atölyeler" },
+        { href: "/masterclass", label: "Masterclass" },
+        { href: "/sertifikalar", label: "Sertifika Programları" },
+        { href: "/takvim", label: "Atölye Takvimi" },
       ],
     },
     {
       title: "Kurumsal",
       links: [
         { href: "/hakkimizda", label: "Hakkımızda" },
-        { href: "/hakkimizda#magazamiz", label: "Mağazamız" },
-        { href: "/yasal/kargo", label: "Kargo & Teslimat" },
-        { href: "/yasal/iptal-iade", label: "İade & Değişim" },
+        { href: "/iletisim", label: "İletişim" },
+        { href: "/yasal/iptal-iade", label: "İptal & İade" },
+        { href: "/yasal/mesafeli-satis", label: "Mesafeli Satış" },
       ],
     },
     {
       title: "Yardım",
       links: [
         { href: "/sss", label: "SSS" },
-        { href: "/yasal/kullanim-kosullari", label: "Kullanım Koşulları" },
         { href: "/yasal/gizlilik", label: "Gizlilik Politikası" },
-        { href: "/iletisim", label: "İletişim" },
+        { href: "/hesabim", label: "Hesabım" },
+        { href: "/iletisim", label: "Bize Ulaşın" },
       ],
     },
   ];

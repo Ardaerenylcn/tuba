@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { db } from "@/lib/db";
@@ -90,7 +91,7 @@ export default async function CertificateDetailPage({ params }: Props) {
         <div>
           {/* Breadcrumb */}
           <nav className="mb-8 flex items-center gap-2 text-xs text-[var(--text-muted)]" aria-label="Breadcrumb">
-            <a href="/sertifikalar" className="hover:text-[var(--text-primary)]">Sertifika Programları</a>
+            <Link href="/sertifikalar" className="hover:text-[var(--text-primary)]">Sertifika Programları</Link>
             <span>/</span>
             <span className="text-[var(--text-secondary)]">{program.title}</span>
           </nav>

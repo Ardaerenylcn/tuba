@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -57,9 +58,9 @@ export function ResetPasswordForm() {
         <p className="mb-1 text-sm font-medium text-red-700">Geçersiz bağlantı</p>
         <p className="text-sm text-red-600">
           Bu bağlantı geçersiz veya süresi dolmuş.{" "}
-          <a href="/sifremi-unuttum" className="underline underline-offset-4">
+          <Link href="/sifremi-unuttum" className="underline underline-offset-4">
             Yeni bir bağlantı talep edin.
-          </a>
+          </Link>
         </p>
       </div>
     );

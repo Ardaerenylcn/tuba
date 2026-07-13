@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
@@ -52,9 +53,9 @@ export function LoginForm() {
           <label htmlFor="password" className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">
             Şifre
           </label>
-          <a href="/sifremi-unuttum" className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)]">
+          <Link href="/sifremi-unuttum" className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)]">
             Unuttum
-          </a>
+          </Link>
         </div>
         <input
           id="password"

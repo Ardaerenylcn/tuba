@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { DashboardCharts } from "@/components/admin/dashboard-charts";
 import type { Metadata } from "next";
@@ -106,7 +107,7 @@ export default async function DashboardPage() {
       <div className="border border-[var(--border)] bg-[var(--surface)]">
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
           <h2 className="text-sm font-medium text-[var(--text-primary)]">Son Rezervasyonlar</h2>
-          <a href="/admin/rezervasyonlar" className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)]">Tümü</a>
+          <Link href="/admin/rezervasyonlar" className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)]">Tümü</Link>
         </div>
         {recentReservations.length === 0 ? (
           <div className="flex items-center justify-center py-12">

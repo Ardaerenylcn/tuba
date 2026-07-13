@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -369,7 +370,7 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
 
             <p className="text-center text-xs text-[var(--text-muted)]">
               Devam ederek{" "}
-              <a href="/yasal/iptal-iade" className="underline underline-offset-2">iptal ve iade koşullarını</a>{" "}
+              <Link href="/yasal/iptal-iade" className="underline underline-offset-2">iptal ve iade koşullarını</Link>{" "}
               kabul etmiş olursunuz.
             </p>
           </div>

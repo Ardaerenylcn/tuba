@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -35,12 +36,12 @@ async function ReservationPageContent({ sessionId }: { sessionId: string }) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
         <p className="text-sm text-[var(--text-muted)]">Bu oturumun kontenjanı dolmuş.</p>
-        <a
+        <Link
           href={`/${session.program.type}/${session.program.slug}`}
           className="text-xs underline underline-offset-4 text-[var(--text-secondary)]"
         >
           Diğer tarihleri gör
-        </a>
+        </Link>
       </div>
     );
   }
@@ -146,9 +147,9 @@ export default async function ReservationPage({ searchParams }: Props) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 px-6">
         <p className="text-sm text-[var(--text-muted)]">Geçerli bir oturum seçilmedi.</p>
-        <a href="/atolyeler" className="text-xs underline underline-offset-4 text-[var(--text-secondary)]">
+        <Link href="/atolyeler" className="text-xs underline underline-offset-4 text-[var(--text-secondary)]">
           Atölyelere dön
-        </a>
+        </Link>
       </div>
     );
   }

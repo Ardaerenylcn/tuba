@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { FadeUp } from "@/components/ui/animate";
 import { ContactForm } from "@/components/storefront/contact-form";
@@ -232,13 +233,13 @@ export function IletisimContent({
                       Cevabınızı hızlıca bulabilirsiniz.
                     </p>
                   </div>
-                  <a
+                  <Link
                     href="/sss"
                     className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors text-lg"
                     aria-label="SSS sayfasına git"
                   >
                     →
-                  </a>
+                  </Link>
                 </div>
               </FadeUp>
             </div>

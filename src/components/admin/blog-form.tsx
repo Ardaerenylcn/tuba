@@ -73,9 +73,20 @@ export function BlogForm({ initial }: { initial?: BlogInitial }) {
     setForm((f) => ({ ...f, title, slug: f.slug === slugify(f.title) || f.slug === "" ? slugify(title) : f.slug }));
   }
 
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
+  // Kaydetme işlemi bir "status" ile tetiklenir: butonlar hangi durumu istediğini açıkça belirtir.
+  // Böylece "yayın tarihi girildi ama durum taslak kaldı" karışıklığı ortadan kalkar.
+  async function save(targetStatus: string) {
+    if (!form.title.trim() || !form.slug.trim()) {
+      setError("Başlık ve slug zorunludur.");
+      return;
+    }
     setSaving(true); setError(null);
+    // Yayınlanıyorsa ve tarih girilmemişse şimdi yayınla (backend de bunu garanti eder).
+    const publishedAt = form.publishedAt
+      ? new Date(form.publishedAt).toISOString()
+      : targetStatus === "published"
+        ? new Date().toISOString()
+        : null;
     const payload = {
       title: form.title,
       slug: form.slug,
@@ -87,10 +98,11 @@ export function BlogForm({ initial }: { initial?: BlogInitial }) {
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       seoTitle: form.seoTitle || null,
       seoDescription: form.seoDescription || null,
-      status: form.status,
+      status: targetStatus,
       featured: form.featured,
-      publishedAt: form.publishedAt ? new Date(form.publishedAt).toISOString() : null,
+      publishedAt,
     };
+    setForm((f) => ({ ...f, status: targetStatus }));
     const url = isEdit ? `/api/v1/admin/blog/${initial!.id}` : "/api/v1/admin/blog";
     const res = await fetch(url, { method: isEdit ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const data = await res.json();
@@ -100,8 +112,15 @@ export function BlogForm({ initial }: { initial?: BlogInitial }) {
     router.refresh();
   }
 
+  const statusLabel = form.status === "published" ? "Yayında" : form.status === "archived" ? "Arşivlendi" : "Taslak";
+  const statusTone = form.status === "published"
+    ? "bg-green-100 text-green-700"
+    : form.status === "archived"
+      ? "bg-neutral-200 text-neutral-600"
+      : "bg-amber-100 text-amber-700";
+
   return (
-    <form onSubmit={save} className="flex flex-col gap-6">
+    <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-6">
       {error && <div className="border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
@@ -141,18 +160,14 @@ export function BlogForm({ initial }: { initial?: BlogInitial }) {
           </div>
 
           <div className="border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className={labelCls}>Durum</label>
-              <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className={inputCls}>
-                <option value="draft">Taslak</option>
-                <option value="published">Yayında</option>
-                <option value="archived">Arşiv</option>
-              </select>
+            <div className="flex items-center justify-between">
+              <span className={labelCls}>Durum</span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusTone}`}>{statusLabel}</span>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelCls}>Yayın tarihi (zamanlama)</label>
               <input type="datetime-local" value={form.publishedAt} onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))} className={inputCls} />
-              <span className="text-[10px] text-[var(--text-muted)]">Gelecek tarih girilirse yazı o tarihe kadar yayında görünmez.</span>
+              <span className="text-[10px] text-[var(--text-muted)]">Boş bırakılırsa &quot;Yayınla&quot; ile şimdi yayınlanır. Gelecek tarih girilirse o tarihe kadar görünmez.</span>
             </div>
             <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <input type="checkbox" checked={form.featured} onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))} className="h-4 w-4" /> Öne çıkar
@@ -175,9 +190,22 @@ export function BlogForm({ initial }: { initial?: BlogInitial }) {
               className="resize-none border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--text-primary)]" placeholder="Meta açıklama (boşsa özet)" />
           </div>
 
-          <button type="submit" disabled={saving} className="h-10 bg-[var(--text-primary)] text-xs font-medium uppercase tracking-wider text-[var(--surface)] disabled:opacity-50">
-            {saving ? "Kaydediliyor..." : isEdit ? "Kaydet" : "Oluştur"}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={() => save("published")} disabled={saving}
+              className="h-10 bg-[var(--text-primary)] text-xs font-medium uppercase tracking-wider text-[var(--surface)] disabled:opacity-50">
+              {saving ? "Kaydediliyor..." : form.status === "published" ? "Güncelle" : "Yayınla"}
+            </button>
+            <button type="button" onClick={() => save("draft")} disabled={saving}
+              className="h-10 border border-[var(--border)] text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] disabled:opacity-50">
+              Taslak olarak kaydet
+            </button>
+            {isEdit && form.status !== "archived" && (
+              <button type="button" onClick={() => save("archived")} disabled={saving}
+                className="h-9 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)] transition-colors hover:text-red-600 disabled:opacity-50">
+                Arşivle
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </form>
