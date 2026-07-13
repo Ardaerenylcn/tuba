@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CoverImagePicker } from "@/components/admin/cover-image-picker";
 import type { CollectionsConfig, CollectionItem } from "@/lib/site-content";
 
 const DEFAULT_CONFIG: CollectionsConfig = {
@@ -232,6 +233,18 @@ export default function KoleksiyonlarAdminPage() {
                   />
                 </div>
               </div>
+            </div>
+
+            <div className="border-t border-[var(--border)] pt-3">
+              <CoverImagePicker
+                value={item.imageId}
+                previewUrl={item.imageUrl}
+                onChange={(id, url) => updateItem(i, { imageId: id, imageUrl: url })}
+                onClear={() => updateItem(i, { imageId: null, imageUrl: null })}
+                aspect={1}
+                label="Koleksiyon Görseli"
+                hint="Kare (1:1) — önerilen 1200×1200. Görsel yoksa arka plan rengi + halka motifi gösterilir."
+              />
             </div>
           </div>
         ))}

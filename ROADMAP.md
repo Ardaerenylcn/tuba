@@ -109,6 +109,9 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [ ] PWA tamamlama (offline shell)
 - [!] Gerçek cihaz 320–1440px görsel QA — görsel/insan denetimi
 
+## 10b. Koleksiyon görselleri
+- [x] Koleksiyon görseli yükleme UI (admin → Site → Koleksiyonlar, 1:1 CoverImagePicker)
+
 ## 18. DevOps / yayın & içerik
 - [x] `.gitignore` gece-otomasyonu artıkları
 - [!] Production deploy doğrulama — Vercel erişimi/karar
