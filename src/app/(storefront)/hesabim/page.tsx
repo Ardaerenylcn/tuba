@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/auth-server";
 import { db } from "@/lib/db";
-import { HesabimContent, type Reservation } from "./content";
+import { HesabimContent, type Reservation, type FavoriteProgram } from "./content";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Hesabım | Atölye Biz" };
@@ -73,12 +73,31 @@ export default async function HesabimPage() {
     (r) => !CANCELLED.includes(r.status) && !(ACTIVE.includes(r.status) && new Date(r.session.startAt) > now),
   );
 
+  const favoritesRaw = await db.favorite.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    select: {
+      program: {
+        select: { title: true, slug: true, type: true, shortDescription: true, basePrice: true, coverImage: { select: { url: true } } },
+      },
+    },
+  });
+  const favorites: FavoriteProgram[] = favoritesRaw.map((f) => ({
+    title: f.program.title,
+    slug: f.program.slug,
+    type: f.program.type,
+    shortDescription: f.program.shortDescription,
+    basePrice: Number(f.program.basePrice),
+    coverImageUrl: f.program.coverImage?.url ?? null,
+  }));
+
   return (
     <HesabimContent
       user={{ name: user.name, email: user.email, phone: user.phone, createdAt: user.createdAt.toISOString() }}
       upcoming={upcoming}
       past={past}
       cancelled={cancelled}
+      favorites={favorites}
     />
   );
 }

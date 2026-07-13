@@ -31,6 +31,7 @@ model User {
   instructorSessions WorkshopSession[] @relation("InstructorSessions")
   auditLogs      AuditLog[]
   updatedContent SiteContent[]
+  favorites      Favorite[]
 
   @@map("users")
 }
@@ -128,8 +129,23 @@ model Program {
   faqs          ProgramFaq[]
   sessions      WorkshopSession[]
   reviews       Review[]
+  favorites     Favorite[]
 
   @@map("programs")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  programId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, programId])
+  @@index([userId])
+  @@map("favorites")
 }
 
 model ProgramRequirement {

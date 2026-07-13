@@ -57,11 +57,21 @@ export interface Reservation {
   };
 }
 
+export interface FavoriteProgram {
+  title: string;
+  slug: string;
+  type: string;
+  shortDescription: string;
+  basePrice: number;
+  coverImageUrl: string | null;
+}
+
 interface Props {
   user: { name: string; email: string; phone?: string | null; createdAt: string };
   upcoming: Reservation[];
   past: Reservation[];
   cancelled: Reservation[];
+  favorites: FavoriteProgram[];
 }
 
 function fmtDate(iso: string) {
@@ -80,7 +90,7 @@ function remaining(iso: string): string {
   return `${hours} saat ${mins} dk kaldı`;
 }
 
-export function HesabimContent({ user, upcoming, past, cancelled }: Props) {
+export function HesabimContent({ user, upcoming, past, cancelled, favorites }: Props) {
   return (
     <div className="min-h-[60vh]">
       <div className="border-b border-[var(--border)] bg-[var(--bg-subtle)] px-6 py-16">
@@ -130,6 +140,31 @@ export function HesabimContent({ user, upcoming, past, cancelled }: Props) {
                 <SectionHeader title="İptal Edilen Rezervasyonlar" count={cancelled.length} />
                 <div className="flex flex-col gap-3">
                   {cancelled.map((r, i) => <ReservationCard key={r.id} r={r} index={i} muted />)}
+                </div>
+              </FadeUp>
+            )}
+
+            {/* Favoriler */}
+            {favorites.length > 0 && (
+              <FadeUp delay={0.2}>
+                <SectionHeader title="Favorilerim" count={favorites.length} />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {favorites.map((p) => (
+                    <Link key={p.slug} href={`/${p.type}/${p.slug}`} className="group flex gap-3 border border-[var(--border)] p-3 transition-colors hover:border-[var(--text-primary)]">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden bg-[var(--bg-subtle)]">
+                        {p.coverImageUrl ? (
+                          <Image src={p.coverImageUrl} alt={p.title} fill sizes="64px" className="object-cover" />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-[var(--text-disabled)]">◆</span>
+                        )}
+                      </div>
+                      <div className="flex min-w-0 flex-col justify-center gap-0.5">
+                        <p className="truncate text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)]">{p.title}</p>
+                        <p className="line-clamp-1 text-xs text-[var(--text-muted)]">{p.shortDescription}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">{p.basePrice.toLocaleString("tr-TR")} ₺</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </FadeUp>
             )}

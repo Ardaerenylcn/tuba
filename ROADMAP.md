@@ -37,7 +37,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [~] Header arama girişi (`/ara` ikonu eklendi; ⌘K paleti yok)
 
 ## 5. Favoriler
-- [ ] Favori programlar (hesaba bağlı istek listesi)
+- [x] Favori programlar — program detayda kalp + /hesabim'da 'Favorilerim' (Favorite tablosu eklendi)
 
 ## 6. Kullanıcı hesabı
 - [x] Profil düzenleme (ad/telefon) — mevcut, doğrulandı

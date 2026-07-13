@@ -6,6 +6,8 @@ import { FAQAccordion } from "@/components/storefront/faq-accordion";
 import { ProgramGallery } from "@/components/storefront/program-gallery";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
 import { getProgramReviews } from "@/lib/reviews";
+import { getSession } from "@/lib/auth-server";
+import { FavoriteButton } from "@/components/storefront/favorite-button";
 import type { Metadata } from "next";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com";
@@ -82,6 +84,11 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
 
   const cat = await db.programCategory.findUnique({ where: { slug: programType } });
 
+  const auth = await getSession();
+  const isFavorited = auth
+    ? Boolean(await db.favorite.findUnique({ where: { userId_programId: { userId: auth.user.id, programId: program.id } } }))
+    : false;
+
   const availableSessions = program.sessions.map((s) => ({
     ...s,
     bookedCount: s._count.reservations,
@@ -157,9 +164,12 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
           <h1 className="mb-4 text-4xl font-light tracking-tight text-[var(--text-primary)] sm:text-5xl">
             {program.title}
           </h1>
-          <p className="mb-10 text-lg leading-relaxed text-[var(--text-secondary)]">
+          <p className="mb-6 text-lg leading-relaxed text-[var(--text-secondary)]">
             {program.shortDescription}
           </p>
+          <div className="mb-10">
+            <FavoriteButton programId={program.id} initialFavorited={isFavorited} isLoggedIn={!!auth} variant="labeled" />
+          </div>
 
           {program.coverImage?.url && (
             <div className="mb-12 aspect-[16/9] w-full overflow-hidden border border-[var(--border)] bg-[var(--bg-muted)]">
