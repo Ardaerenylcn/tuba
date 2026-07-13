@@ -136,7 +136,7 @@ function NewCategoryModal({
             />
             <span className="text-sm text-[var(--text-secondary)]">Anasayfada göster</span>
           </label>
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button
               type="submit"

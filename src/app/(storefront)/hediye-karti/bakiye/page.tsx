@@ -66,7 +66,7 @@ export default function GiftCardBalancePage() {
       </form>
 
       {error && (
-        <div className="mt-6 border border-red-200 bg-red-50 p-4 text-center text-sm text-red-700">{error}</div>
+        <div role="alert" className="mt-6 border border-red-200 bg-red-50 p-4 text-center text-sm text-red-700">{error}</div>
       )}
 
       {result && (

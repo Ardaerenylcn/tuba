@@ -29,7 +29,7 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 - [x] Sitemap blog+program dahil (eksik route'lar eklendi, BASE düzeltildi)
 - [x] Sosyal paylaş butonları (WhatsApp/X/kopyala)
 - [x] Okuma ilerleme çubuğu
-- [ ] Kategori/etiket arşiv + yazar sayfası
+- [~] Kategori/etiket arşivi çalışıyor (/blog?kategori= & ?etiket=); ayrı yazar sayfası düşük değer, atlandı
 - [ ] Blog altı bülten CTA
 
 ## 4. Site içi arama
@@ -85,13 +85,13 @@ Durum: `[ ]` bekliyor · `[~]` kısmi · `[x]` tamamlandı · `[!]` **sende bekl
 ## 13. Erişilebilirlik
 - [ ] Renk kontrastı denetimi
 - [x] focus-visible (mevcut) + skip-to-content linki eklendi
-- [ ] alt / aria-live / modal focus trap
+- [~] a11y: form hatalarında role=alert + skip-link + modal role=dialog (tam denetim tarayıcı gerektirir)
 
 ## 14. Test & kalite
 - [!] E2E (Playwright) — kurulum + zaman
 - [ ] Birim testler (rezervasyon/hediye kartı mantığı)
 - [~] CI (GitHub Actions dosyası hazır; token `workflow` yetkisi olmadığı için elle eklenecek)
-- [ ] Kalan idiomatik lint uyarılarını kapat
+- [x] Lint hataları 0'a indirildi (idiomatik effect'ler için gerekçeli disable)
 
 ## 15. Güvenlik
 - [x] Güvenlik başlıkları (next.config)

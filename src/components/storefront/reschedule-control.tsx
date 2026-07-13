@@ -95,7 +95,7 @@ export function RescheduleControl({ reservationId }: { reservationId: string }) 
           ) : (
             <p className="text-[11px] text-[var(--text-muted)]">Taşınabilecek uygun başka tarih yok.</p>
           )}
-          {error && <p className="mt-2 text-[11px] text-red-600">{error}</p>}
+          {error && <p role="alert" className="mt-2 text-[11px] text-red-600">{error}</p>}
         </div>
       )}
     </div>

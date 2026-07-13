@@ -69,7 +69,7 @@ export function ProgramReorderList({
 
   return (
     <div className="flex flex-col gap-2">
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
       <div className="border border-[var(--border)] bg-[var(--surface)] divide-y divide-[var(--border)]">
         {programs.map((p, i) => (
           <div

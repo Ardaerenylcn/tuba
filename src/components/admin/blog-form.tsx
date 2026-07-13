@@ -121,7 +121,7 @@ export function BlogForm({ initial }: { initial?: BlogInitial }) {
 
   return (
     <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-6">
-      {error && <div className="border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
         {/* Sol: içerik */}
