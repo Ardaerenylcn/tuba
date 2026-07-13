@@ -19,7 +19,7 @@ export function WaitlistForm({ sessionId, maxParticipants }: { sessionId: string
       const res = await fetch("/api/v1/reservations/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ sessionId, ...form }),
       });
       const data = await res.json();
       if (!data.success) { setError(data.message ?? "Bir hata oluştu."); return; }

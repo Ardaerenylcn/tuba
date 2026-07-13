@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { db } from "@/lib/db";
@@ -132,9 +133,9 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_360px]">
         <div>
           <nav className="mb-8 flex items-center gap-2 text-xs text-[var(--text-muted)]" aria-label="Breadcrumb">
-            <a href={`/${programType}`} className="hover:text-[var(--text-primary)]">
+            <Link href={`/${programType}`} className="hover:text-[var(--text-primary)]">
               {cat?.name ?? programType}
-            </a>
+            </Link>
             <span>/</span>
             <span className="text-[var(--text-secondary)]">{program.title}</span>
           </nav>

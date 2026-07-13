@@ -193,6 +193,7 @@ export default function TurlerPage() {
     setLoading(false);
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
   useEffect(() => { load(); }, [load]);
 
   function handleCreated(cat: Category) {

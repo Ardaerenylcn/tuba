@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { ok, created, badRequest, forbidden, serverError, handleZodError } from "@/lib/api";
+import { ok, created, badRequest, forbidden, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
 
 const createSchema = z.object({

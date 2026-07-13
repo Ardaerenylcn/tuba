@@ -137,6 +137,7 @@ export function SessionsPanel({ programId, defaultCapacity, durationMinutes, bas
     setLoading(false);
   }, [programId]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
   useEffect(() => { load(); }, [load]);
 
   const bulkPreview = useMemo(

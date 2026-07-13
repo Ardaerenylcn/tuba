@@ -20,6 +20,7 @@ export function ResetPasswordForm() {
 
   useEffect(() => {
     if (urlError === "INVALID_TOKEN" || (!token && !urlError)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
       setState("invalid");
     }
   }, [token, urlError]);

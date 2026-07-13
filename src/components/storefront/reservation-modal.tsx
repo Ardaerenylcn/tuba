@@ -71,6 +71,7 @@ function Ring({ from, mid, delay = 0 }: { from: string; mid: string; delay?: num
 
 export function ReservationModal({ open, onClose }: Props) {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {

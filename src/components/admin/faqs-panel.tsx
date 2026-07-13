@@ -33,6 +33,7 @@ export function FaqsPanel({ programId }: { programId: string }) {
     setLoading(false);
   }, [base]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
   useEffect(() => { load(); }, [load]);
 
   async function handleAdd(e: React.FormEvent) {

@@ -35,6 +35,7 @@ export function HeroScene() {
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
     setReduced(mq.matches);
 
     const canvas = document.createElement("canvas");

@@ -268,17 +268,6 @@ export function HeroSection({ config }: { config: HeroBannerConfig }) {
 
 // ─── Collections ─────────────────────────────────────────────────────────────
 
-const COLLECTIONS_TOP = [
-  { slug: "kolyeler", label: "Kolyeler", bg: "#e2cdb5" },
-  { slug: "yuzukler", label: "Yüzükler", bg: "#d6c9b4" },
-];
-
-const COLLECTIONS_BOTTOM = [
-  { slug: "kupeler", label: "Küpeler", bg: "#dfc8ae" },
-  { slug: "bileklikler", label: "Bileklikler", bg: "#cfc5b6" },
-  { slug: "charmlar", label: "Charm'lar", bg: "#d9d3c6" },
-];
-
 function CollectionCard({
   slug,
   label,
@@ -446,15 +435,6 @@ export function CollectionsSection({ config }: { config?: CollectionsConfig }) {
 // ─── Atölye Biz ──────────────────────────────────────────────────────────────
 
 const BASE_BG = ["#2c1810", "#3d2010", "#1a1008", "#4a2418", "#2a1505"];
-
-function slugToLabel(slug: string): string {
-  const MAP: Record<string, string> = {
-    atolyeler: "Atölyeler",
-    sertifikalar: "Sertifikalar",
-    masterclass: "Masterclass",
-  };
-  return MAP[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
-}
 
 function AtolyeBizProgramCard({
   program,

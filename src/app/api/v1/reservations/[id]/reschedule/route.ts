@@ -20,13 +20,6 @@ async function loadOwned(id: string) {
   return { auth, reservation };
 }
 
-async function availableSpots(sessionId: string, capacity: number) {
-  const booked = await db.reservation.count({
-    where: { sessionId, status: { in: ["pending", "confirmed"] } },
-  });
-  return capacity - booked;
-}
-
 // GET — bu rezervasyon için taşınabilecek uygun alternatif seanslar
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -90,7 +83,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (res.error === "not_found") return notFound("Rezervasyon bulunamadı.");
     return forbidden("Yetkiniz yok.");
   }
-  const { auth, reservation } = res;
+  const { reservation } = res;
 
   if (!ACTIVE.includes(reservation.status)) return badRequest("Bu rezervasyon ertelenemez.");
   if (new Date(reservation.session.startAt) <= new Date()) return badRequest("Başlamış oturum ertelenemez.");

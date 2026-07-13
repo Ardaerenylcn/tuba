@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { CoverImagePicker } from "@/components/admin/cover-image-picker";
-import type { Metadata } from "next";
 
 export default function LogoPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);

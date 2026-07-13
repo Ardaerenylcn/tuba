@@ -55,6 +55,7 @@ export default function HediyeKartlariPage() {
     setLoading(false);
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- kasıtlı: mount/veri-yükleme kalıbı
   useEffect(() => { load(); }, [load]);
 
   async function cancelCard(id: string) {
