@@ -1,45 +1,26 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { getFeaturedReviews } from "@/lib/reviews";
-import { FooterReviews } from "./footer-reviews";
 
-interface Settings {
-  siteName?: string;
-  instagramUrl?: string;
-  facebookUrl?: string;
-}
-
-async function getSettings(): Promise<Settings> {
-  const row = await db.siteContent.findUnique({
-    where: { key_locale: { key: "site.settings", locale: "tr" } },
+// Footer'daki "Programlar" sütunu gerçek yayındaki programlardan beslenir.
+async function getProgramLinks() {
+  const programs = await db.program.findMany({
+    where: { status: "published" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    take: 6,
+    select: { title: true, slug: true, type: true },
   });
-  if (!row?.value || typeof row.value !== "object" || Array.isArray(row.value)) return {};
-  return row.value as Settings;
+  return programs.map((p) => ({ href: `/${p.type}/${p.slug}`, label: p.title }));
 }
 
 export async function SiteFooter() {
-  const [s, footerReviews] = await Promise.all([getSettings(), getFeaturedReviews(4)]);
-  const instagramUrl = s.instagramUrl || "#";
-  const facebookUrl = s.facebookUrl || "#";
-  void facebookUrl;
+  const programLinks = await getProgramLinks();
 
   const columns = [
     {
-      title: "Keşfet",
-      links: [
-        { href: "/koleksiyonlar", label: "Koleksiyonlar" },
-        { href: "/galeri", label: "Galeri" },
-        { href: "/hediye-karti", label: "Hediye Kartı" },
-        { href: "/blog", label: "Blog" },
-      ],
-    },
-    {
       title: "Programlar",
       links: [
-        { href: "/atolyeler", label: "Atölyeler" },
-        { href: "/masterclass", label: "Masterclass" },
-        { href: "/sertifikalar", label: "Sertifika Programları" },
-        { href: "/takvim", label: "Atölye Takvimi" },
+        ...programLinks,
+        { href: "/programlar", label: "Tüm Programlar →" },
       ],
     },
     {
@@ -47,8 +28,8 @@ export async function SiteFooter() {
       links: [
         { href: "/hakkimizda", label: "Hakkımızda" },
         { href: "/iletisim", label: "İletişim" },
-        { href: "/yasal/iptal-iade", label: "İptal & İade" },
-        { href: "/yasal/mesafeli-satis", label: "Mesafeli Satış" },
+        { href: "/blog", label: "Blog" },
+        { href: "/galeri", label: "Galeri" },
       ],
     },
     {
@@ -56,8 +37,8 @@ export async function SiteFooter() {
       links: [
         { href: "/sss", label: "SSS" },
         { href: "/yasal/gizlilik", label: "Gizlilik Politikası" },
-        { href: "/hesabim", label: "Hesabım" },
-        { href: "/iletisim", label: "Bize Ulaşın" },
+        { href: "/yasal/iptal-iade", label: "İptal & İade" },
+        { href: "/yasal/mesafeli-satis", label: "Mesafeli Satış" },
       ],
     },
   ];
@@ -65,7 +46,7 @@ export async function SiteFooter() {
   return (
     <footer className="bg-[var(--bg-subtle)] border-t border-[var(--border)]">
       <div className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           {/* Brand */}
           <div className="flex flex-col gap-4">
             <div>
@@ -86,11 +67,6 @@ export async function SiteFooter() {
               Çağdaş takı tasarımı, el işçiliği ve İstanbul&apos;daki yaratıcı
               atölye deneyimleri.
             </p>
-            {footerReviews.length > 0 && (
-              <div className="mt-2 max-w-[240px] border-t border-[var(--border)] pt-4">
-                <FooterReviews reviews={footerReviews} />
-              </div>
-            )}
           </div>
 
           {/* Link columns */}
