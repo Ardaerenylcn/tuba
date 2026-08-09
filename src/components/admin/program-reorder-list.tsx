@@ -7,6 +7,8 @@ export interface ReorderProgram {
   id: string;
   title: string;
   slug: string;
+  /** Program tipi (kategori slug'ı) — genel adres /{type}/{slug} şeklinde. */
+  type: string;
   status: string;
   basePrice: number;
   sessionCount: number;
@@ -114,7 +116,9 @@ export function ProgramReorderList({
 
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm text-[var(--text-primary)] truncate">{p.title}</p>
-              <p className="text-xs text-[var(--text-muted)] truncate">/{p.slug}</p>
+              <p className="font-mono text-[11px] text-[var(--text-muted)] truncate">
+                /{p.type}/{p.slug}
+              </p>
             </div>
 
             <span className="text-xs text-[var(--text-secondary)] tabular-nums shrink-0 hidden sm:inline">
@@ -126,6 +130,13 @@ export function ProgramReorderList({
             <span className={`inline-flex items-center px-2 py-0.5 text-xs shrink-0 ${STATUS_COLORS[p.status]}`}>
               {STATUS_LABELS[p.status] ?? p.status}
             </span>
+            <Link
+              href={`/${p.type}/${p.slug}`}
+              target="_blank"
+              className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)] shrink-0"
+            >
+              Önizle
+            </Link>
             <Link
               href={`/admin/programlar/${p.id}`}
               className="text-xs text-[var(--text-muted)] underline underline-offset-4 hover:text-[var(--text-primary)] shrink-0"

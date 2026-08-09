@@ -41,6 +41,7 @@ export default async function AdminProgramsPage() {
           id: p.id,
           title: p.title,
           slug: p.slug,
+          type: p.type,
           status: p.status,
           basePrice: Number(p.basePrice),
           sessionCount: p._count.sessions,
