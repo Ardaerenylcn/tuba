@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
 import { RichTextEditor } from "./rich-text-editor";
 import { CoverImagePicker } from "./cover-image-picker";
+import { slugify } from "@/lib/slug";
 
 export interface BlogInitial {
   id?: string;
@@ -24,11 +25,6 @@ export interface BlogInitial {
   publishedAt?: string | null;
 }
 
-function slugify(str: string) {
-  return str.toLowerCase()
-    .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
 
 // datetime-local için ISO → "YYYY-MM-DDTHH:mm"
 function toLocalInput(iso?: string | null): string {

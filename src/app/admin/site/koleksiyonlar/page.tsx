@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CoverImagePicker } from "@/components/admin/cover-image-picker";
 import type { CollectionsConfig, CollectionItem } from "@/lib/site-content";
+import { slugify } from "@/lib/slug";
 
 const DEFAULT_CONFIG: CollectionsConfig = {
   heading: "Koleksiyonlar",
@@ -16,14 +17,6 @@ const DEFAULT_CONFIG: CollectionsConfig = {
   ],
 };
 
-function slugify(str: string) {
-  return str
-    .toLowerCase()
-    .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
-    .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 export default function KoleksiyonlarAdminPage() {
   const [config, setConfig] = useState<CollectionsConfig>(DEFAULT_CONFIG);
