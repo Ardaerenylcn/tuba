@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
+import { ResendVerification } from "@/components/auth/resend-verification";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -13,16 +14,22 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverified, setUnverified] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setUnverified(false);
 
     const result = await signIn.email({ email, password });
 
     if (result.error) {
-      setError("E-posta veya şifre hatalı.");
+      if (result.error.code === "EMAIL_NOT_VERIFIED") {
+        setUnverified(true);
+      } else {
+        setError("E-posta veya şifre hatalı.");
+      }
       setLoading(false);
       return;
     }
@@ -71,6 +78,18 @@ export function LoginForm() {
 
       {error && (
         <p role="alert" className="text-sm text-red-600">{error}</p>
+      )}
+
+      {unverified && (
+        <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--bg-subtle)] p-4">
+          <p role="alert" className="text-sm leading-relaxed text-[var(--text-muted)]">
+            <span className="font-medium text-[var(--text-primary)]">
+              E-posta adresiniz doğrulanmamış.
+            </span>{" "}
+            Kayıt sırasında gönderdiğimiz bağlantıya tıklayarak hesabınızı doğrulayın.
+          </p>
+          <ResendVerification email={email} />
+        </div>
       )}
 
       <button

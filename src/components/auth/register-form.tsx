@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth-client";
+import { ResendVerification } from "@/components/auth/resend-verification";
 
 export function RegisterForm() {
-  const router = useRouter();
-
   const [form, setForm] = useState({ name: "", email: "", password: "", phone: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   function set(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -24,6 +23,8 @@ export function RegisterForm() {
       name: form.name,
       email: form.email,
       password: form.password,
+      phone: form.phone || undefined,
+      callbackURL: "/eposta-dogrula",
     });
 
     if (result.error) {
@@ -32,8 +33,29 @@ export function RegisterForm() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setSentTo(form.email);
+    setLoading(false);
+  }
+
+  if (sentTo) {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="border border-[var(--border)] bg-[var(--bg-subtle)] p-6 text-center">
+          <p className="mb-1 text-sm font-medium text-[var(--text-primary)]">
+            E-postanızı doğrulayın
+          </p>
+          <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+            <span className="text-[var(--text-primary)]">{sentTo}</span> adresine bir doğrulama
+            bağlantısı gönderdik. Giriş yapabilmek için bağlantıya tıklayın.
+          </p>
+          <p className="mt-3 text-xs text-[var(--text-disabled)]">
+            Görünmüyorsa spam klasörüne bakın. Bağlantı 24 saat geçerlidir.
+          </p>
+        </div>
+
+        <ResendVerification email={sentTo} />
+      </div>
+    );
   }
 
   return (
