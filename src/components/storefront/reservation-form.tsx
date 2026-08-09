@@ -128,7 +128,14 @@ export function ReservationForm({ sessionId, maxParticipants, pricePerPerson, cu
         body: JSON.stringify({ sessionId, ...form, giftCardCode: giftApplied ? giftCode.trim() : undefined }),
       });
       const data = await res.json();
-      if (!data.success) { setError(data.message ?? "Bir hata oluştu."); return; }
+      if (!data.success) {
+        // Oturum sona ermiş olabilir — üyelik zorunlu, girişe yönlendir.
+        if (res.status === 401) {
+          router.push(`/giris?redirect=${encodeURIComponent(`/rezervasyon?session=${sessionId}`)}`);
+          return;
+        }
+        setError(data.message ?? "Bir hata oluştu."); return;
+      }
       router.push(`/rezervasyon/basarili?id=${data.data.id}`);
     } catch {
       setError("Bağlantı hatası. Lütfen tekrar deneyin.");

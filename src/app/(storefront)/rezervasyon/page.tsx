@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getSession as getAuthSession } from "@/lib/auth-server";
 import { ReservationForm } from "@/components/storefront/reservation-form";
 import { WaitlistForm } from "@/components/storefront/waitlist-form";
 import type { Metadata } from "next";
@@ -50,6 +51,12 @@ async function ReservationPageContent({ sessionId }: { sessionId: string }) {
         </div>
       </div>
     );
+  }
+
+  // Ders satın almak (rezervasyon) için üyelik zorunlu — giriş yoksa girişe yönlendir.
+  const authSession = await getAuthSession();
+  if (!authSession) {
+    redirect(`/giris?redirect=${encodeURIComponent(`/rezervasyon?session=${sessionId}`)}`);
   }
 
   const price = session.priceOverride ?? session.program.basePrice;

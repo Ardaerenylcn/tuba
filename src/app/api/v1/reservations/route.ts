@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma";
 import { db } from "@/lib/db";
-import { created, badRequest, conflict, notFound, serverError, handleZodError } from "@/lib/api";
+import { created, badRequest, conflict, notFound, serverError, unauthorized, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
 import { rateLimit, getClientIp, sweep } from "@/lib/rate-limit";
 
@@ -42,9 +42,12 @@ export async function POST(request: Request) {
   const { sessionId, customerName, customerEmail, customerPhone, participantCount, notes, giftCardCode } =
     parsed.data;
 
-  // Giriş yapmışsa rezervasyonu kullanıcı hesabına bağla (hesabım/üye geçmişi için)
+  // Ders satın almak (rezervasyon) için üyelik zorunlu — giriş yoksa reddet.
   const authSession = await getSession();
   const userId = authSession?.user?.id ?? null;
+  if (!userId) {
+    return unauthorized("Rezervasyon yapmak için giriş yapmalısınız.");
+  }
 
   try {
     const result = await db.$transaction(async (tx) => {
