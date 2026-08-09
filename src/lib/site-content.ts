@@ -33,6 +33,19 @@ export interface TrustBadgesConfig {
   }>;
 }
 
+export type HeroInfoIcon = "location" | "experience" | "groups" | "handmade";
+
+/** Anasayfa hero'sunun altındaki 4 bilgi kartı (her biri bir sayfaya bağlanır). */
+export interface HeroInfoBarConfig {
+  items: Array<{
+    icon: HeroInfoIcon;
+    title: string;
+    sub: string;
+    /** Kartın tıklandığında gideceği yol, ör. "/programlar" */
+    href: string;
+  }>;
+}
+
 export interface NewsletterConfig {
   heading: string;
   description: string;
@@ -160,6 +173,15 @@ export const DEFAULT_TRUST_BADGES: TrustBadgesConfig = {
   ],
 };
 
+export const DEFAULT_HERO_INFO_BAR: HeroInfoBarConfig = {
+  items: [
+    { icon: "location", title: "Fenerbahçe, Kadıköy", sub: "İstanbul", href: "/hakkimizda" },
+    { icon: "experience", title: "15+ Yıllık Deneyim", sub: "Yakında gelecek", href: "/blog" },
+    { icon: "groups", title: "Küçük Gruplar", sub: "Maks. 8 kişi", href: "/programlar" },
+    { icon: "handmade", title: "El Yapımı Üretim", sub: "Her parça özgün", href: "/hakkimizda" },
+  ],
+};
+
 export const DEFAULT_NEWSLETTER: NewsletterConfig = {
   heading: "Yeniliklerden Haberdar Ol",
   description:
@@ -246,6 +268,7 @@ export interface SiteContentMap {
   announcement_bar: AnnouncementBarConfig;
   atolye_biz: AtolyeBizConfig;
   trust_badges: TrustBadgesConfig;
+  hero_info_bar: HeroInfoBarConfig;
   newsletter: NewsletterConfig;
   contact_info: ContactConfig;
   collections: CollectionsConfig;
@@ -256,6 +279,7 @@ const SITE_CONTENT_KEYS = [
   "announcement_bar",
   "atolye_biz",
   "trust_badges",
+  "hero_info_bar",
   "newsletter",
   "contact_info",
   "collections",
@@ -293,6 +317,11 @@ export async function getAllSiteContent(): Promise<SiteContentMap> {
     trust_badges: map["trust_badges"]
       ? { ...DEFAULT_TRUST_BADGES, ...(map["trust_badges"] as Partial<TrustBadgesConfig>) }
       : DEFAULT_TRUST_BADGES,
+    hero_info_bar: (() => {
+      const raw = map["hero_info_bar"] as Partial<HeroInfoBarConfig> | undefined;
+      if (!raw?.items?.length) return DEFAULT_HERO_INFO_BAR;
+      return { items: raw.items };
+    })(),
     newsletter: map["newsletter"]
       ? { ...DEFAULT_NEWSLETTER, ...(map["newsletter"] as Partial<NewsletterConfig>) }
       : DEFAULT_NEWSLETTER,

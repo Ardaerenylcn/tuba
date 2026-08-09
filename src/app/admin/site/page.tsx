@@ -14,6 +14,11 @@ const SECTIONS = [
     desc: "Başlık, açıklama, kart görselleri ve başlıkları",
   },
   {
+    href: "/admin/site/hero-bilgi-cubugu",
+    label: "Hero Bilgi Çubuğu",
+    desc: "Anasayfa görselinin altındaki 4 kart — başlık, alt metin ve gittiği yol",
+  },
+  {
     href: "/admin/site/guven-rozetleri",
     label: "Güven Rozetleri",
     desc: "Kargo, el yapımı, iade ve güvenli ödeme rozetleri",

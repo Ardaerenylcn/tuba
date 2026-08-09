@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import type { HomeWorkshop, HomeCertificate, HomeCategory, HeroBannerConfig } from "@/lib/home-content";
-import type { AtolyeBizConfig, TrustBadgesConfig, NewsletterConfig, CollectionsConfig } from "@/lib/site-content";
+import type { AtolyeBizConfig, TrustBadgesConfig, NewsletterConfig, CollectionsConfig, HeroInfoBarConfig, HeroInfoIcon } from "@/lib/site-content";
 
 const _DEF_ATOLYE_BIZ: AtolyeBizConfig = {
   heading: "Atölye Biz", description: "Takı tasarımını keşfetmek, üretim süreçlerini öğrenmek ve kendi parçanı yaratmak için programlarımıza katılabilirsin.", linkText: "Tüm Programları İncele →",
@@ -21,6 +21,39 @@ const _DEF_TRUST: TrustBadgesConfig = { badges: [
 const _DEF_NEWSLETTER: NewsletterConfig = {
   heading: "Yeniliklerden Haberdar Ol", description: "Koleksiyonlar, atölye duyuruları ve özel indirimlerden ilk sen haberdar ol.",
   instagramUrl: "#", pinterestUrl: "#", youtubeUrl: "#", email: "info@tubaatman.com",
+};
+
+// Hero bilgi çubuğundaki ikonlar. Yol/başlık/alt metin admin panelinden gelir,
+// ikon çizimi burada sabit kalır (tasarımın parçası).
+const HERO_INFO_ICONS: Record<HeroInfoIcon, React.ReactNode> = {
+  location: (
+    <>
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+      <circle cx="12" cy="9" r="2.5" />
+    </>
+  ),
+  experience: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </>
+  ),
+  groups: (
+    <>
+      <circle cx="9" cy="7" r="3" />
+      <circle cx="16" cy="7" r="3" />
+      <path d="M3 20c0-3.3 2.7-6 6-6" />
+      <path d="M21 20c0-3.3-2.7-6-6-6" />
+      <path d="M12 14c3.3 0 6 2.7 6 6H6c0-3.3 2.7-6 6-6z" />
+    </>
+  ),
+  handmade: (
+    <>
+      <path d="M18 11V6l-2-3H8L6 6v5" />
+      <path d="M6 11c0 4 2 7 6 9 4-2 6-5 6-9" />
+      <path d="M9 12l2 2 4-4" />
+    </>
+  ),
 };
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -51,7 +84,7 @@ function FadeUp({
 
 // ─── Hero ────────────────────────────────────────────────────────────────────
 
-export function HeroSection({ config }: { config: HeroBannerConfig }) {
+export function HeroSection({ config, infoBar }: { config: HeroBannerConfig; infoBar: HeroInfoBarConfig }) {
   return (
     <>
     <section
@@ -187,77 +220,25 @@ export function HeroSection({ config }: { config: HeroBannerConfig }) {
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-2 gap-px bg-white/10 md:grid-cols-4">
 
-          {/* Konum → /hakkimizda */}
-          <Link
-            href="/hakkimizda"
-            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-              <circle cx="12" cy="9" r="2.5"/>
-            </svg>
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/85 leading-none group-hover:text-white transition-colors">
-                Fenerbahçe, Kadıköy
-              </p>
-              <p className="text-[9px] text-white/40 tracking-wide mt-1">İstanbul</p>
-            </div>
-          </Link>
-
-          {/* 15+ Yıl → /blog (yakında) */}
-          <Link
-            href="/blog"
-            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-            </svg>
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/85 leading-none group-hover:text-white transition-colors">
-                15+ Yıllık Deneyim
-              </p>
-              <p className="text-[9px] text-white/40 tracking-wide mt-1">Yakında gelecek</p>
-            </div>
-          </Link>
-
-          {/* Küçük Gruplar → /programlar */}
-          <Link
-            href="/programlar"
-            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
-              <circle cx="9" cy="7" r="3"/>
-              <circle cx="16" cy="7" r="3"/>
-              <path d="M3 20c0-3.3 2.7-6 6-6"/>
-              <path d="M21 20c0-3.3-2.7-6-6-6"/>
-              <path d="M12 14c3.3 0 6 2.7 6 6H6c0-3.3 2.7-6 6-6z"/>
-            </svg>
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/85 leading-none group-hover:text-white transition-colors">
-                Küçük Gruplar
-              </p>
-              <p className="text-[9px] text-white/40 tracking-wide mt-1">Maks. 8 kişi</p>
-            </div>
-          </Link>
-
-          {/* El Yapımı Üretim → /hakkimizda */}
-          <Link
-            href="/hakkimizda"
-            className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
-              <path d="M18 11V6l-2-3H8L6 6v5"/>
-              <path d="M6 11c0 4 2 7 6 9 4-2 6-5 6-9"/>
-              <path d="M9 12l2 2 4-4"/>
-            </svg>
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/85 leading-none group-hover:text-white transition-colors">
-                El Yapımı Üretim
-              </p>
-              <p className="text-[9px] text-white/40 tracking-wide mt-1">Her parça özgün</p>
-            </div>
-          </Link>
+          {infoBar.items.map((item, i) => (
+            <Link
+              key={i}
+              href={item.href}
+              className="group flex items-center justify-center gap-3 bg-[#1c0f08] px-4 py-4 text-center transition-colors hover:text-white"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 text-[#c9a97a] shrink-0">
+                {HERO_INFO_ICONS[item.icon]}
+              </svg>
+              <div>
+                <p className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/85 leading-none group-hover:text-white transition-colors">
+                  {item.title}
+                </p>
+                {item.sub && (
+                  <p className="text-[9px] text-white/40 tracking-wide mt-1">{item.sub}</p>
+                )}
+              </div>
+            </Link>
+          ))}
 
         </div>
       </div>
