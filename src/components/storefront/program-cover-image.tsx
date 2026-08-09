@@ -19,7 +19,7 @@ export function ProgramCoverImage({
   if (!url) return null;
 
   return (
-    <div className="mb-12 aspect-[3/4] w-full max-w-sm overflow-hidden border border-[var(--border)] bg-[var(--bg-muted)]">
+    <div className="aspect-[3/4] w-full max-w-sm overflow-hidden border border-[var(--border)] bg-[var(--bg-muted)]">
       <Image
         src={url}
         alt={alt}

@@ -130,8 +130,8 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_360px]">
-        <div>
+      <div className="grid grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-[1fr_360px]">
+        <div className="lg:col-start-1 lg:row-start-1">
           <nav className="mb-8 flex items-center gap-2 text-xs text-[var(--text-muted)]" aria-label="Breadcrumb">
             <Link href={`/${programType}`} className="hover:text-[var(--text-primary)]">
               {cat?.name ?? programType}
@@ -177,6 +177,33 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
             position={program.coverImagePosition}
             alt={program.title}
           />
+
+        </div>
+
+        <aside className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24 lg:self-start">
+          <div className="border border-[var(--border)] p-6">
+            <div className="mb-5 flex items-baseline justify-between">
+              <span className="text-2xl font-light text-[var(--text-primary)]">
+                {Number(program.basePrice).toLocaleString("tr-TR")} ₺
+              </span>
+              <span className="text-xs text-[var(--text-muted)]">kişi başı</span>
+            </div>
+            {availableSessions.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center">
+                <p className="text-sm text-[var(--text-muted)]">Şu an için açık oturum bulunmuyor.</p>
+                <p className="text-xs text-[var(--text-disabled)]">Yeni tarihler yakında eklenecek.</p>
+              </div>
+            ) : (
+              <SessionCalendar
+                sessions={availableSessions}
+                basePrice={Number(program.basePrice)}
+                currency={program.currency}
+              />
+            )}
+          </div>
+        </aside>
+
+        <div className="lg:col-start-1 lg:row-start-2">
 
           <RichTextRenderer content={program.description} className="mb-12" />
 
@@ -226,28 +253,6 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="border border-[var(--border)] p-6">
-            <div className="mb-5 flex items-baseline justify-between">
-              <span className="text-2xl font-light text-[var(--text-primary)]">
-                {Number(program.basePrice).toLocaleString("tr-TR")} ₺
-              </span>
-              <span className="text-xs text-[var(--text-muted)]">kişi başı</span>
-            </div>
-            {availableSessions.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-8 text-center">
-                <p className="text-sm text-[var(--text-muted)]">Şu an için açık oturum bulunmuyor.</p>
-                <p className="text-xs text-[var(--text-disabled)]">Yeni tarihler yakında eklenecek.</p>
-              </div>
-            ) : (
-              <SessionCalendar
-                sessions={availableSessions}
-                basePrice={Number(program.basePrice)}
-                currency={program.currency}
-              />
-            )}
-          </div>
-        </aside>
       </div>
     </div>
   );
