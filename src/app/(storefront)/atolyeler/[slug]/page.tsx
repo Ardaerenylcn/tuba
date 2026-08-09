@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { db } from "@/lib/db";
 import { SessionCalendar } from "@/components/storefront/session-calendar";
 import { FAQAccordion } from "@/components/storefront/faq-accordion";
 import { ProgramGallery } from "@/components/storefront/program-gallery";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
 import type { Metadata } from "next";
+import { ProgramCoverImage } from "@/components/storefront/program-cover-image";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -129,19 +129,11 @@ export default async function WorkshopDetailPage({ params }: Props) {
           </p>
 
           {/* Cover image */}
-          {program.coverImage?.url && (
-            <div className="mb-12 aspect-[16/9] w-full overflow-hidden border border-[var(--border)] bg-[var(--bg-muted)]">
-              <Image
-                src={program.coverImage.url}
-                alt={program.title}
-                width={1200}
-                height={675}
-                className="h-full w-full object-cover"
-                style={{ objectPosition: program.coverImagePosition ?? "center center" }}
-                priority
-              />
-            </div>
-          )}
+          <ProgramCoverImage
+            url={program.coverImage?.url}
+            position={program.coverImagePosition}
+            alt={program.title}
+          />
 
           {/* Description */}
           <RichTextRenderer

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { db } from "@/lib/db";
 import { SessionCalendar } from "@/components/storefront/session-calendar";
 import { FAQAccordion } from "@/components/storefront/faq-accordion";
@@ -10,6 +9,7 @@ import { getProgramReviews } from "@/lib/reviews";
 import { getSession } from "@/lib/auth-server";
 import { FavoriteButton } from "@/components/storefront/favorite-button";
 import type { Metadata } from "next";
+import { ProgramCoverImage } from "@/components/storefront/program-cover-image";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com";
 
@@ -172,19 +172,11 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
             <FavoriteButton programId={program.id} initialFavorited={isFavorited} isLoggedIn={!!auth} variant="labeled" />
           </div>
 
-          {program.coverImage?.url && (
-            <div className="mb-12 aspect-[16/9] w-full overflow-hidden border border-[var(--border)] bg-[var(--bg-muted)]">
-              <Image
-                src={program.coverImage.url}
-                alt={program.title}
-                width={1200}
-                height={675}
-                className="h-full w-full object-cover"
-                style={{ objectPosition: program.coverImagePosition ?? "center center" }}
-                priority
-              />
-            </div>
-          )}
+          <ProgramCoverImage
+            url={program.coverImage?.url}
+            position={program.coverImagePosition}
+            alt={program.title}
+          />
 
           <RichTextRenderer content={program.description} className="mb-12" />
 
