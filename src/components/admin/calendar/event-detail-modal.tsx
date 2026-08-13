@@ -8,6 +8,7 @@ import {
   SESSION_STATUS_LABELS,
   occupancyTone,
 } from "./status-labels";
+import { ReservationEditModal, type EditableReservation } from "./reservation-edit-modal";
 
 interface Reservation {
   id: string;
@@ -85,6 +86,7 @@ export function EventDetailModal({
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [editing, setEditing] = useState<EditableReservation | null>(null);
 
   /** Yenileme sayacı — durum değişince artırılır, effect yeniden çeker. */
   const [reloadKey, setReloadKey] = useState(0);
@@ -303,6 +305,21 @@ export function EventDetailModal({
                         <span className="mr-1 text-[10px] text-[var(--text-disabled)]">
                           {new Date(r.createdAt).toLocaleDateString("tr-TR")}
                         </span>
+                        <button
+                          type="button"
+                          disabled={busyId === r.id}
+                          onClick={() => setEditing({
+                            id: r.id,
+                            customerName: r.customerName,
+                            customerEmail: r.customerEmail,
+                            customerPhone: r.customerPhone,
+                            participantCount: r.participantCount,
+                            notes: r.notes,
+                          })}
+                          className="h-6 border border-[var(--border)] px-2 text-[10px] text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] disabled:opacity-40"
+                        >
+                          Düzenle / Aktar
+                        </button>
                         {r.status === "waitlisted" && (
                           <button
                             type="button"
@@ -401,6 +418,21 @@ export function EventDetailModal({
           </div>
         )}
       </div>
+
+      {editing && (
+        <ReservationEditModal
+          reservation={editing}
+          currentSessionId={sessionId}
+          onClose={() => setEditing(null)}
+          onSaved={(message) => {
+            setEditing(null);
+            setFlash(message);
+            setReloadKey((k) => k + 1);
+            onChanged();
+            setTimeout(() => setFlash(null), 4000);
+          }}
+        />
+      )}
     </div>
   );
 }
