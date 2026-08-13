@@ -13,7 +13,16 @@ export function ProgramGallery({ images }: { images: SliderImage[] }) {
   return (
     <section className="mb-12">
       <h2 className="mb-5 text-xl font-light text-[var(--text-primary)]">Fotoğraflar</h2>
-      <ImageSlider images={images} autoplay />
+      {/* Yüklenen fotoğrafların çoğu telefonla çekilmiş dikey kare olduğu için
+          slider da dikey: 16:9 çerçeve bu fotoğrafların ~2/3'ünü kırpıyordu.
+          Kapak görseliyle aynı oran, sayfa bütün duruyor. Genişlik sınırlı,
+          aksi hâlde dikey oran masaüstünde ekranı doldurur. */}
+      <ImageSlider
+        images={images}
+        autoplay
+        aspectClassName="aspect-[3/4]"
+        className="max-w-sm"
+      />
     </section>
   );
 }
