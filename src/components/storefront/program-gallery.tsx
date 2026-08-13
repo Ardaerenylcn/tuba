@@ -1,27 +1,29 @@
 import { ImageSlider, type SliderImage } from "@/components/ui/image-slider";
 
 /**
- * Program detay sayfasındaki fotoğraf bölümü.
+ * Program detay sayfasındaki fotoğraf slider'ı — kapak görselinin altında,
+ * ona göre küçük ve kendi kendine dönen ikincil bir alan.
  *
- * Görseller `ProgramGalleryImage` tablosundan gelir; sıra ve aktif/pasif
- * durumu admin panelinden yönetilir. Sunucu bileşeni olarak kalır, etkileşim
- * ImageSlider'ın içindedir.
+ * Oran 3:4: galeri görselleri panelde 3:4 kırpıldığı için burada yeniden
+ * kırpılmaları gerekmiyor. Bu boyutta oklar kalabalık yaptığı için gizli;
+ * gezinme noktalarla, dokunmatikte swipe ile yapılıyor. Tıklayınca büyür.
  */
 export function ProgramGallery({ images }: { images: SliderImage[] }) {
   if (images.length === 0) return null;
 
   return (
-    <section className="mb-12">
-      <h2 className="mb-5 text-xl font-light text-[var(--text-primary)]">Fotoğraflar</h2>
-      {/* Yüklenen fotoğrafların çoğu telefonla çekilmiş dikey kare olduğu için
-          slider da dikey: 16:9 çerçeve bu fotoğrafların ~2/3'ünü kırpıyordu.
-          Kapak görseliyle aynı oran, sayfa bütün duruyor. Genişlik sınırlı,
-          aksi hâlde dikey oran masaüstünde ekranı doldurur. */}
+    <section className="mt-5 max-w-sm">
+      <p className="mb-2 text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--text-muted)]">
+        Fotoğraflar
+      </p>
       <ImageSlider
         images={images}
         autoplay
+        autoplayMs={3500}
+        showArrows={false}
         aspectClassName="aspect-[3/4]"
-        className="max-w-sm"
+        className="max-w-[190px]"
+        sizes="190px"
       />
     </section>
   );

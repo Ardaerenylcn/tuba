@@ -15,11 +15,15 @@ interface Props {
   autoplayMs?: number;
   /** Tıklayınca tam görseli büyüten katman. */
   lightbox?: boolean;
+  /** Küçük boyutlarda oklar kalabalık yaptığı için kapatılabilir. */
+  showArrows?: boolean;
   className?: string;
   /** Görsel alanının oranı — sayfaya göre değiştirilebilir. */
   aspectClassName?: string;
   /** İlk görsel LCP adayıysa true; liste içinde kullanılıyorsa false bırakın. */
   priority?: boolean;
+  /** next/image sizes — küçük slider'da gereksiz büyük dosya indirilmemesi için. */
+  sizes?: string;
 }
 
 /**
@@ -35,9 +39,11 @@ export function ImageSlider({
   autoplay = false,
   autoplayMs = 5000,
   lightbox = true,
+  showArrows = true,
   className = "",
   aspectClassName = "aspect-[4/3] sm:aspect-[3/2] lg:aspect-[16/9]",
   priority = false,
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px",
 }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -139,7 +145,7 @@ export function ImageSlider({
                 src={img.url}
                 alt={img.alt?.trim() || `Fotoğraf ${i + 1}`}
                 fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px"
+                sizes={sizes}
                 className={`object-cover ${lightbox ? "cursor-zoom-in" : ""}`}
                 priority={priority && i === 0}
                 loading={priority && i === 0 ? undefined : "lazy"}
@@ -149,7 +155,7 @@ export function ImageSlider({
           ))}
         </div>
 
-        {count > 1 && (
+        {count > 1 && showArrows && (
           <>
             <SliderArrow
               side="left"

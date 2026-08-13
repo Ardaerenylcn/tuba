@@ -140,6 +140,10 @@ export default async function CertificateDetailPage({ params }: Props) {
             alt={program.title}
           />
 
+          <ProgramGallery
+            images={program.galleryImages.map((g) => ({ url: g.url, alt: g.media?.altText }))}
+          />
+
         </div>
 
         <aside className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24 lg:self-start">
@@ -172,10 +176,6 @@ export default async function CertificateDetailPage({ params }: Props) {
           <RichTextRenderer content={program.description} className="mb-12" />
 
           {/* Gallery */}
-          <ProgramGallery
-            images={program.galleryImages.map((g) => ({ url: g.url, alt: g.media?.altText }))}
-          />
-
           {/* Requirements */}
           {program.requirements.length > 0 && (
             <div className="mb-12">
