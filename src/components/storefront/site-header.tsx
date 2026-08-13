@@ -6,11 +6,17 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { ReservationModal } from "./reservation-modal";
 import type { AnnouncementBarConfig } from "@/lib/site-content";
+import type { NavCategory } from "@/lib/categories";
 
-const NAV_LINKS = [
-  { href: "/deneme-dersi", label: "Deneme Dersi" },
+interface NavLink {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+/** Kategoriye bağlı olmayan sabit menü öğeleri. */
+const STATIC_NAV_LINKS: NavLink[] = [
   { href: "/programlar", label: "Eğitimler" },
-  { href: "/atolyeler", label: "Workshoplar" },
   { href: "/takvim", label: "Takvim" },
   { href: "/hediye-karti", label: "Hediye Kartı" },
   { href: "https://www.tubaatman.com/", label: "Tuba Atman", external: true },
@@ -18,7 +24,28 @@ const NAV_LINKS = [
   { href: "/blog", label: "Blog" },
 ];
 
-export function SiteHeader({ announcement, logoUrl }: { announcement?: AnnouncementBarConfig; logoUrl?: string | null }) {
+/**
+ * Kategoriler menünün başına eklenir. Eskiden "Deneme Dersi" ve "Workshoplar"
+ * sabit kodluydu ve silinen kategorilerin adreslerine gidiyordu.
+ */
+function buildNavLinks(categories: NavCategory[]): NavLink[] {
+  return [
+    ...categories.map((c) => ({ href: `/${c.slug}`, label: c.name })),
+    ...STATIC_NAV_LINKS,
+  ];
+}
+
+export function SiteHeader({
+  announcement,
+  logoUrl,
+  categories = [],
+}: {
+  announcement?: AnnouncementBarConfig;
+  logoUrl?: string | null;
+  categories?: NavCategory[];
+}) {
+  const NAV_LINKS = buildNavLinks(categories);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
