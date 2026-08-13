@@ -28,7 +28,7 @@ interface Props {
   /** next/image sizes — küçük slider'da gereksiz büyük dosya indirilmemesi için. */
   sizes?: string;
   /** Aynı anda kaç görsel görünsün. Gezinme sayfa sayfa yapılır. */
-  perView?: 1 | 2;
+  perView?: 1 | 2 | 3;
 }
 
 /**
@@ -149,7 +149,9 @@ export function ImageSlider({
               <div
                 key={i}
                 className={`h-full shrink-0 ${
-                  perView === 2 ? "w-1/2 snap-start pr-2 last:pr-0" : "w-full snap-center"
+                  perView === 1
+                    ? "w-full snap-center"
+                    : `${perView === 2 ? "w-1/2" : "w-1/3"} snap-start pr-2 last:pr-0`
                 }`}
                 role="group"
                 aria-roledescription="slide"
