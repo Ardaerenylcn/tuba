@@ -16,7 +16,9 @@ interface NavLink {
 
 /** Kategoriye bağlı olmayan sabit menü öğeleri. */
 const STATIC_NAV_LINKS: NavLink[] = [
-  { href: "/programlar", label: "Eğitimler" },
+  // Sayfanın kendi başlığı "Tüm Programlar". Eskiden burada "Eğitimler"
+  // yazıyordu; aynı adlı bir kategori açılınca menüde iki "Eğitimler" oluştu.
+  { href: "/programlar", label: "Tüm Programlar" },
   { href: "/takvim", label: "Takvim" },
   { href: "/hediye-karti", label: "Hediye Kartı" },
   { href: "https://www.tubaatman.com/", label: "Tuba Atman", external: true },
