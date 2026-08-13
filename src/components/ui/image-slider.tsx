@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export interface SliderImage {
@@ -34,10 +34,11 @@ interface Props {
 /**
  * Yeniden kullanılabilir görsel slider'ı.
  *
- * Kaydırma native `scroll-snap` ile yapılır: dokunmatik swipe, ivme ve
- * erişilebilir klavye kaydırması tarayıcıdan hazır gelir; JS yalnızca
- * ok tuşları, göstergeler ve autoplay için devreye girer. Bu sayede
- * ek bir carousel kütüphanesi gerekmiyor.
+ * Kaydırma native `scroll-snap` ile yapılır: dokunmatik swipe, ivme ve klavye
+ * kaydırması tarayıcıdan hazır gelir, ek bir carousel kütüphanesi gerekmiyor.
+ * Aktif sayfa kaydırma konumundan okunur; ok/nokta/autoplay ise `target`
+ * state'ini değiştirir ve kaydırmayı bir effect yapar — böylece render
+ * sırasında ref'e dokunulmaz (React kuralı).
  */
 export function ImageSlider({
   images,
@@ -53,24 +54,29 @@ export function ImageSlider({
 }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  // Kaydırma isteği. `n` sayacı sayesinde aynı sayfa tekrar istendiğinde de
+  // nesne değişir ve effect yeniden çalışır; effect içinde setState yapmaya
+  // (dolayısıyla zincirleme render'a) gerek kalmaz.
+  const [request, setRequest] = useState<{ page: number; n: number } | null>(null);
   const [interacted, setInteracted] = useState(false);
   const [zoomed, setZoomed] = useState<number | null>(null);
 
   const count = images.length;
-  // perView > 1 iken bir "sayfa" birden fazla görsel gösterir; ok, nokta ve
-  // autoplay hep sayfa adımıyla çalışır, yoksa yarım kaydırmalar oluşur.
+  // perView > 1 iken bir "sayfa" birden fazla görsel gösterir; gezinme hep
+  // sayfa adımıyla çalışır, yoksa yarım kaydırmalar oluşur.
   const pages = Math.max(1, Math.ceil(count / perView));
   // Çok sayfada nokta sırası taşacağı için ince bir ilerleme çubuğuna geçilir.
   const useDots = pages <= 8;
 
-  const scrollTo = useCallback((i: number) => {
+  // İstenen sayfaya kaydır. Ref'e yalnızca burada, render dışında dokunulur.
+  useEffect(() => {
+    if (!request) return;
     const track = trackRef.current;
-    if (!track) return;
-    const clamped = (i + pages) % pages;
-    track.scrollTo({ left: track.clientWidth * clamped, behavior: "smooth" });
-  }, [pages]);
+    if (track) track.scrollTo({ left: track.clientWidth * request.page, behavior: "smooth" });
+  }, [request]);
 
-  // Kaydırma konumundan aktif görseli türet (swipe ve ok tuşları için tek kaynak).
+  // Aktif sayfayı kaydırma konumundan türet — swipe ve programatik kaydırma
+  // için tek kaynak.
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -89,23 +95,18 @@ export function ImageSlider({
     };
   }, []);
 
-  // Autoplay: kullanıcı dokunduktan sonra bir daha başlamaz; hareket azaltma
-  // tercihi açıksa ve sekme arkadaysa hiç çalışmaz.
+  // Autoplay her sayfa değişiminden sonra yeniden kurulur. Kullanıcı
+  // dokunduktan sonra bir daha başlamaz; hareket azaltma tercihinde hiç çalışmaz.
   useEffect(() => {
     if (!autoplay || interacted || pages < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const timer = setInterval(() => {
-      if (document.hidden) return;
-      setIndex((cur) => {
-        const next = (cur + 1) % pages;
-        const track = trackRef.current;
-        if (track) track.scrollTo({ left: track.clientWidth * next, behavior: "smooth" });
-        return next;
-      });
-    }, autoplayMs);
-    return () => clearInterval(timer);
-  }, [autoplay, autoplayMs, interacted, pages]);
+    const timer = setTimeout(
+      () => setRequest((r) => ({ page: (index + 1) % pages, n: (r?.n ?? 0) + 1 })),
+      autoplayMs,
+    );
+    return () => clearTimeout(timer);
+  }, [autoplay, autoplayMs, interacted, pages, index]);
 
   // Büyütme katmanında klavye gezinmesi.
   useEffect(() => {
@@ -121,103 +122,97 @@ export function ImageSlider({
 
   if (count === 0) return null;
 
-  function stopAutoplay() {
-    if (!interacted) setInteracted(true);
+  function goTo(page: number) {
+    setInteracted(true);
+    const wrapped = ((page % pages) + pages) % pages;
+    setRequest((r) => ({ page: wrapped, n: (r?.n ?? 0) + 1 }));
   }
 
   return (
     <>
       <div
         className={className}
-        onPointerDown={stopAutoplay}
-        onMouseEnter={stopAutoplay}
+        onMouseEnter={() => setInteracted(true)}
         role="group"
         aria-roledescription="carousel"
         aria-label="Fotoğraflar"
       >
         {/* Oklar yalnızca görsel alanına göre konumlanmalı, göstergeler hariç. */}
         <div className="relative">
-        <div
-          ref={trackRef}
-          className={`flex ${aspectClassName} w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth motion-reduce:scroll-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
-          tabIndex={0}
-        >
-          {images.map((img, i) => (
-            <div
-              key={i}
-              className={`h-full shrink-0 ${
-                perView === 2 ? "w-1/2 snap-start pr-2 last:pr-0" : "w-full snap-center"
-              }`}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`${i + 1} / ${count}`}
-            >
-              <div className="relative h-full w-full overflow-hidden bg-[var(--bg-muted)]">
-                <Image
-                  src={img.url}
-                  alt={img.alt?.trim() || `Fotoğraf ${i + 1}`}
-                  fill
-                  sizes={sizes}
-                  className={`object-cover ${lightbox ? "cursor-zoom-in" : ""}`}
-                  priority={priority && i === 0}
-                  loading={priority && i === 0 ? undefined : "lazy"}
-                  onClick={lightbox ? () => setZoomed(i) : undefined}
-                />
+          <div
+            ref={trackRef}
+            className={`flex ${aspectClassName} w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth motion-reduce:scroll-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+            tabIndex={0}
+            onPointerDown={() => setInteracted(true)}
+          >
+            {images.map((img, i) => (
+              <div
+                key={i}
+                className={`h-full shrink-0 ${
+                  perView === 2 ? "w-1/2 snap-start pr-2 last:pr-0" : "w-full snap-center"
+                }`}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${i + 1} / ${count}`}
+              >
+                <div className="relative h-full w-full overflow-hidden bg-[var(--bg-muted)]">
+                  <Image
+                    src={img.url}
+                    alt={img.alt?.trim() || `Fotoğraf ${i + 1}`}
+                    fill
+                    sizes={sizes}
+                    className={`object-cover ${lightbox ? "cursor-zoom-in" : ""}`}
+                    priority={priority && i === 0}
+                    loading={priority && i === 0 ? undefined : "lazy"}
+                    onClick={lightbox ? () => setZoomed(i) : undefined}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {pages > 1 && showArrows && (
-          <>
-            <SliderArrow
-              side="left"
-              onClick={() => { stopAutoplay(); scrollTo(index - 1); }}
-            />
-            <SliderArrow
-              side="right"
-              onClick={() => { stopAutoplay(); scrollTo(index + 1); }}
-            />
-          </>
-        )}
+          {pages > 1 && showArrows && (
+            <>
+              <SliderArrow side="left" onClick={() => goTo(index - 1)} />
+              <SliderArrow side="right" onClick={() => goTo(index + 1)} />
+            </>
+          )}
         </div>
 
         {pages > 1 && (
-          <>
-            <div className="mt-4 flex items-center justify-center gap-2">
-              {useDots ? (
-                Array.from({ length: pages }).map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => { stopAutoplay(); scrollTo(i); }}
-                    aria-label={`${i + 1}. sayfaya git`}
-                    aria-current={i === index}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === index
-                        ? "w-6 bg-[var(--text-primary)]"
-                        : "w-1.5 bg-[var(--text-primary)]/25 hover:bg-[var(--text-primary)]/50"
-                    }`}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {useDots ? (
+              Array.from({ length: pages }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`${i + 1}. sayfaya git`}
+                  aria-current={i === index}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === index
+                      ? "w-6 bg-[var(--text-primary)]"
+                      : "w-1.5 bg-[var(--text-primary)]/25 hover:bg-[var(--text-primary)]/50"
+                  }`}
+                />
+              ))
+            ) : (
+              <>
+                <div className="h-[3px] w-32 overflow-hidden rounded-full bg-[var(--text-primary)]/15">
+                  <div
+                    className="h-full rounded-full bg-[var(--text-primary)] transition-transform duration-300"
+                    style={{
+                      width: `${100 / pages}%`,
+                      transform: `translateX(${index * 100}%)`,
+                    }}
                   />
-                ))
-              ) : (
-                <>
-                  <div className="h-[3px] w-32 overflow-hidden rounded-full bg-[var(--text-primary)]/15">
-                    <div
-                      className="h-full rounded-full bg-[var(--text-primary)] transition-transform duration-300"
-                      style={{
-                        width: `${100 / pages}%`,
-                        transform: `translateX(${index * 100}%)`,
-                      }}
-                    />
-                  </div>
-                  <span className="ml-1 text-[11px] tabular-nums text-[var(--text-muted)]">
-                    {index + 1}/{pages}
-                  </span>
-                </>
-              )}
-            </div>
-          </>
+                </div>
+                <span className="ml-1 text-[11px] tabular-nums text-[var(--text-muted)]">
+                  {index + 1}/{pages}
+                </span>
+              </>
+            )}
+          </div>
         )}
       </div>
 
