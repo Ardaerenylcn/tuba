@@ -27,14 +27,17 @@ export function ProgramMedia({ coverUrl, coverPosition, images, title }: Props) 
   const sliderSpan = hasCover ? "sm:col-span-2" : "sm:col-span-3";
 
   return (
-    <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+    // Satır kolonun tamamını kaplamıyor: max-w-xl ile sınırlı, böylece üç kare
+    // de daha küçük kalıyor. Genişliği büyütüp küçültmek kareleri birlikte
+    // ölçekler — tek ayar noktası burası.
+    <div className="mb-2 grid max-w-xl grid-cols-1 gap-2 sm:grid-cols-3">
       {hasCover && (
         <div className="relative aspect-[3/4] overflow-hidden bg-[var(--bg-muted)]">
           <Image
             src={coverUrl}
             alt={title}
             fill
-            sizes="(max-width: 640px) 100vw, 240px"
+            sizes="(max-width: 640px) 100vw, 200px"
             className="object-cover"
             style={{ objectPosition: coverPosition ?? "center center" }}
             priority
@@ -50,7 +53,7 @@ export function ProgramMedia({ coverUrl, coverPosition, images, title }: Props) 
             autoplay
             autoplayMs={4000}
             aspectClassName="aspect-[3/2]"
-            sizes="(max-width: 640px) 50vw, 240px"
+            sizes="(max-width: 640px) 50vw, 200px"
           />
         </div>
       )}
