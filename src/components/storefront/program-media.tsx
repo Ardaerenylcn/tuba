@@ -9,35 +9,31 @@ interface Props {
 }
 
 /**
- * Detay sayfasının görsel bloğu: solda kapak, sağında galeri slider'ı.
+ * Detay sayfasının görsel bloğu: üstte kapak, hemen altında galeri slider'ı.
  *
- * Dört eşit sütunlu bir satır — kapak 1, slider 3 sütun kaplar ve aynı anda
- * 3 fotoğraf gösterir. Böylece dört kare de aynı genişlikte ve aynı 3:4
- * oranında olur, satır içerik kolonunu tam doldurur. Önceki düzende kapak
- * dar kalıyor, yanında ve küçük slider'ın çevresinde boşluk oluşuyordu.
+ * İkisi de aynı genişlikte (max-w-sm) olduğu için tek bir blok gibi durur;
+ * kapak geniş, altındaki şerit dar kalınca düzen dağınık görünüyordu.
  *
- * Slider'ın şeridi 3:2'dir: yan yana iki 3:4 kare = 6:4 = 3:2.
+ * Slider aynı anda 3 küçük kare gösterir. Şerit oranı görünen kare sayısıyla
+ * ölçeklenmeli: yan yana üç 3:4 kare = 9:4. Oklar bu boyutta kalabalık
+ * yaptığı için kapalı; gezinme noktalarla, dokunmatikte swipe ile.
  */
 export function ProgramMedia({ coverUrl, coverPosition, images, title }: Props) {
   const hasCover = !!coverUrl;
   const hasImages = images.length > 0;
   if (!hasCover && !hasImages) return null;
 
-  // Kapak yoksa slider tüm satırı kaplar, boşluk bırakmaz.
-  const sliderSpan = hasCover ? "sm:col-span-3" : "sm:col-span-4";
-
   return (
-    // Satır kolonun tamamını kaplamıyor: max-w-xl ile sınırlı, böylece üç kare
-    // de daha küçük kalıyor. Genişliği büyütüp küçültmek kareleri birlikte
-    // ölçekler — tek ayar noktası burası.
-    <div className="mb-2 grid max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+    // Blok genişliği tek ayar noktası: büyütmek/küçültmek kapağı ve şeridi
+    // birlikte ölçekler, hizaları bozulmaz.
+    <div className="mb-2 max-w-sm">
       {hasCover && (
-        <div className="relative aspect-[3/4] overflow-hidden bg-[var(--bg-muted)]">
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-[var(--bg-muted)]">
           <Image
             src={coverUrl}
             alt={title}
             fill
-            sizes="(max-width: 640px) 50vw, 150px"
+            sizes="(max-width: 640px) 100vw, 384px"
             className="object-cover"
             style={{ objectPosition: coverPosition ?? "center center" }}
             priority
@@ -46,14 +42,15 @@ export function ProgramMedia({ coverUrl, coverPosition, images, title }: Props) 
       )}
 
       {hasImages && (
-        <div className={sliderSpan}>
+        <div className={hasCover ? "mt-2" : ""}>
           <ImageSlider
             images={images}
             perView={3}
             autoplay
             autoplayMs={4000}
+            showArrows={false}
             aspectClassName="aspect-[9/4]"
-            sizes="(max-width: 640px) 33vw, 150px"
+            sizes="(max-width: 640px) 33vw, 130px"
           />
         </div>
       )}
