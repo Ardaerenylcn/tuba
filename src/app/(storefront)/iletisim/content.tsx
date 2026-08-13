@@ -60,9 +60,14 @@ export function IletisimContent({
       ),
       baslik: "Konum",
       icerik: (
-        <p className="text-[15px] text-[var(--text-secondary)]">{config.location}</p>
+        <p className="text-[15px] leading-relaxed text-[var(--text-secondary)]">{config.location}</p>
       ),
-      alt: "Kesin adres rezervasyon onayından sonra iletilir",
+      // Gerçek bağlantı: adres artık haritada açıkça göründüğü için ziyaretçiyi
+      // doğrudan yol tarifine yönlendirmek en faydalısı.
+      altLink: {
+        href: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(config.location)}`,
+        label: "Yol tarifi al →",
+      },
     },
     {
       ikon: (
@@ -142,6 +147,16 @@ export function IletisimContent({
                   {item.icerik}
                   {item.alt && (
                     <p className="text-[11px] text-[var(--text-muted)]">{item.alt}</p>
+                  )}
+                  {item.altLink && (
+                    <a
+                      href={item.altLink.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-[var(--text-muted)] underline underline-offset-2 transition-colors hover:text-[var(--text-primary)]"
+                    >
+                      {item.altLink.label}
+                    </a>
                   )}
                 </div>
               </FadeUp>
