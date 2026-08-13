@@ -18,12 +18,17 @@ interface Props {
   /** Küçük boyutlarda oklar kalabalık yaptığı için kapatılabilir. */
   showArrows?: boolean;
   className?: string;
-  /** Görsel alanının oranı — sayfaya göre değiştirilebilir. */
+  /**
+   * Şeridin (track) oranı — tek bir görselin değil. perView=2 iken şerit iki
+   * görsel yan yana durduğu için iki kat geniş olmalı: 3:4 kareler → 3:2 şerit.
+   */
   aspectClassName?: string;
   /** İlk görsel LCP adayıysa true; liste içinde kullanılıyorsa false bırakın. */
   priority?: boolean;
   /** next/image sizes — küçük slider'da gereksiz büyük dosya indirilmemesi için. */
   sizes?: string;
+  /** Aynı anda kaç görsel görünsün. Gezinme sayfa sayfa yapılır. */
+  perView?: 1 | 2;
 }
 
 /**
@@ -44,6 +49,7 @@ export function ImageSlider({
   aspectClassName = "aspect-[4/3] sm:aspect-[3/2] lg:aspect-[16/9]",
   priority = false,
   sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 800px",
+  perView = 1,
 }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -51,15 +57,18 @@ export function ImageSlider({
   const [zoomed, setZoomed] = useState<number | null>(null);
 
   const count = images.length;
-  // Çok sayıda görselde nokta sırası taşacağı için ince bir ilerleme çubuğuna geçilir.
-  const useDots = count <= 8;
+  // perView > 1 iken bir "sayfa" birden fazla görsel gösterir; ok, nokta ve
+  // autoplay hep sayfa adımıyla çalışır, yoksa yarım kaydırmalar oluşur.
+  const pages = Math.max(1, Math.ceil(count / perView));
+  // Çok sayfada nokta sırası taşacağı için ince bir ilerleme çubuğuna geçilir.
+  const useDots = pages <= 8;
 
   const scrollTo = useCallback((i: number) => {
     const track = trackRef.current;
     if (!track) return;
-    const clamped = (i + count) % count;
+    const clamped = (i + pages) % pages;
     track.scrollTo({ left: track.clientWidth * clamped, behavior: "smooth" });
-  }, [count]);
+  }, [pages]);
 
   // Kaydırma konumundan aktif görseli türet (swipe ve ok tuşları için tek kaynak).
   useEffect(() => {
@@ -83,20 +92,20 @@ export function ImageSlider({
   // Autoplay: kullanıcı dokunduktan sonra bir daha başlamaz; hareket azaltma
   // tercihi açıksa ve sekme arkadaysa hiç çalışmaz.
   useEffect(() => {
-    if (!autoplay || interacted || count < 2) return;
+    if (!autoplay || interacted || pages < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const timer = setInterval(() => {
       if (document.hidden) return;
       setIndex((cur) => {
-        const next = (cur + 1) % count;
+        const next = (cur + 1) % pages;
         const track = trackRef.current;
         if (track) track.scrollTo({ left: track.clientWidth * next, behavior: "smooth" });
         return next;
       });
     }, autoplayMs);
     return () => clearInterval(timer);
-  }, [autoplay, autoplayMs, interacted, count]);
+  }, [autoplay, autoplayMs, interacted, pages]);
 
   // Büyütme katmanında klavye gezinmesi.
   useEffect(() => {
@@ -130,32 +139,36 @@ export function ImageSlider({
         <div className="relative">
         <div
           ref={trackRef}
-          className={`flex ${aspectClassName} w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth motion-reduce:scroll-auto bg-[var(--bg-muted)] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+          className={`flex ${aspectClassName} w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth motion-reduce:scroll-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
           tabIndex={0}
         >
           {images.map((img, i) => (
             <div
               key={i}
-              className="relative h-full w-full shrink-0 snap-center"
+              className={`h-full shrink-0 ${
+                perView === 2 ? "w-1/2 snap-start pr-2 last:pr-0" : "w-full snap-center"
+              }`}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} / ${count}`}
             >
-              <Image
-                src={img.url}
-                alt={img.alt?.trim() || `Fotoğraf ${i + 1}`}
-                fill
-                sizes={sizes}
-                className={`object-cover ${lightbox ? "cursor-zoom-in" : ""}`}
-                priority={priority && i === 0}
-                loading={priority && i === 0 ? undefined : "lazy"}
-                onClick={lightbox ? () => setZoomed(i) : undefined}
-              />
+              <div className="relative h-full w-full overflow-hidden bg-[var(--bg-muted)]">
+                <Image
+                  src={img.url}
+                  alt={img.alt?.trim() || `Fotoğraf ${i + 1}`}
+                  fill
+                  sizes={sizes}
+                  className={`object-cover ${lightbox ? "cursor-zoom-in" : ""}`}
+                  priority={priority && i === 0}
+                  loading={priority && i === 0 ? undefined : "lazy"}
+                  onClick={lightbox ? () => setZoomed(i) : undefined}
+                />
+              </div>
             </div>
           ))}
         </div>
 
-        {count > 1 && showArrows && (
+        {pages > 1 && showArrows && (
           <>
             <SliderArrow
               side="left"
@@ -169,16 +182,16 @@ export function ImageSlider({
         )}
         </div>
 
-        {count > 1 && (
+        {pages > 1 && (
           <>
             <div className="mt-4 flex items-center justify-center gap-2">
               {useDots ? (
-                images.map((_, i) => (
+                Array.from({ length: pages }).map((_, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => { stopAutoplay(); scrollTo(i); }}
-                    aria-label={`${i + 1}. fotoğrafa git`}
+                    aria-label={`${i + 1}. sayfaya git`}
                     aria-current={i === index}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       i === index
@@ -193,13 +206,13 @@ export function ImageSlider({
                     <div
                       className="h-full rounded-full bg-[var(--text-primary)] transition-transform duration-300"
                       style={{
-                        width: `${100 / count}%`,
+                        width: `${100 / pages}%`,
                         transform: `translateX(${index * 100}%)`,
                       }}
                     />
                   </div>
                   <span className="ml-1 text-[11px] tabular-nums text-[var(--text-muted)]">
-                    {index + 1}/{count}
+                    {index + 1}/{pages}
                   </span>
                 </>
               )}

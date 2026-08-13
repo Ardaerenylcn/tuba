@@ -3,13 +3,12 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { SessionCalendar } from "@/components/storefront/session-calendar";
 import { FAQAccordion } from "@/components/storefront/faq-accordion";
-import { ProgramGallery } from "@/components/storefront/program-gallery";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
 import { getProgramReviews } from "@/lib/reviews";
 import { getSession } from "@/lib/auth-server";
 import { FavoriteButton } from "@/components/storefront/favorite-button";
 import type { Metadata } from "next";
-import { ProgramCoverImage } from "@/components/storefront/program-cover-image";
+import { ProgramMedia } from "@/components/storefront/program-media";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubaatman.com";
 
@@ -177,14 +176,11 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
             <FavoriteButton programId={program.id} initialFavorited={isFavorited} isLoggedIn={!!auth} variant="labeled" />
           </div>
 
-          <ProgramCoverImage
-            url={program.coverImage?.url}
-            position={program.coverImagePosition}
-            alt={program.title}
-          />
-
-          <ProgramGallery
+          <ProgramMedia
+            coverUrl={program.coverImage?.url}
+            coverPosition={program.coverImagePosition}
             images={program.galleryImages.map((g) => ({ url: g.url, alt: g.media?.altText }))}
+            title={program.title}
           />
 
         </div>

@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { SessionCalendar } from "@/components/storefront/session-calendar";
 import { FAQAccordion } from "@/components/storefront/faq-accordion";
-import { ProgramGallery } from "@/components/storefront/program-gallery";
 import { RichTextRenderer } from "@/components/ui/rich-text-renderer";
 import type { Metadata } from "next";
-import { ProgramCoverImage } from "@/components/storefront/program-cover-image";
+import { ProgramMedia } from "@/components/storefront/program-media";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -134,14 +133,11 @@ export default async function WorkshopDetailPage({ params }: Props) {
           </p>
 
           {/* Cover image */}
-          <ProgramCoverImage
-            url={program.coverImage?.url}
-            position={program.coverImagePosition}
-            alt={program.title}
-          />
-
-          <ProgramGallery
+          <ProgramMedia
+            coverUrl={program.coverImage?.url}
+            coverPosition={program.coverImagePosition}
             images={program.galleryImages.map((g) => ({ url: g.url, alt: g.media?.altText }))}
+            title={program.title}
           />
 
         </div>
