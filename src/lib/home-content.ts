@@ -119,16 +119,10 @@ export async function getHomePageData() {
     };
   });
 
-  // Fallback: hiç yayında program ve hiç showOnHome kategori yoksa varsayılan 2 kart
-  const finalCategories =
-    categories.length > 0
-      ? categories
-      : [
-          { id: "_atolyeler", name: "Atölyeler", slug: "atolyeler", description: "El yapımı takı atölyeleri", sortOrder: 0, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
-          { id: "_sertifikalar", name: "Sertifikalar", slug: "sertifikalar", description: "Sertifika programları", sortOrder: 1, showOnHome: true, isActive: true, createdAt: new Date(), updatedAt: new Date(), _count: { programs: 0 } },
-        ];
-
-  return { categories: finalCategories, heroBanner, workshops: workshopsRaw };
+  // Kategori yoksa uydurma kart basılmaz: eskiden burada sabit "Atölyeler" ve
+  // "Sertifikalar" kartları vardı, panelden silinseler bile anasayfada
+  // görünmeye devam ediyor ve yönetilemiyorlardı.
+  return { categories, heroBanner, workshops: workshopsRaw };
 }
 
 export type HomeCategory = Awaited<ReturnType<typeof getHomePageData>>["categories"][number];
