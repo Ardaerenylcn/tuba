@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const ADMIN_PATHS: string[] = [];
+// Ucuz ön kontrol: oturum çerezi yoksa admin sayfası hiç render edilmez.
+// Rol kontrolü burada yapılamaz (çerez yalnızca varlık bildirir) — gerçek
+// yetki kontrolü admin layout'undaki requireAdmin() ile yapılır.
+const ADMIN_PATHS: string[] = ["/admin"];
 const AUTH_PATHS = ["/hesabim"];
 const AUTH_PAGES = ["/giris", "/kayit"];
 
