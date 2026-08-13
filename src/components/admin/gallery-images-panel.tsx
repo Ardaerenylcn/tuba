@@ -2,6 +2,12 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { ImageCropModal } from "@/components/admin/image-crop-modal";
+
+/** Slider 3:4 gösterdiği için yüklenen görseller de 3:4 kırpılır. */
+const GALLERY_ASPECT = 3 / 4;
+/** Kırpılan çıktı bu genişliğe küçültülür — 3:4 slider en fazla ~450px geniş. */
+const GALLERY_MAX_WIDTH = 1200;
 
 export interface GalleryImageRow {
   id: string;
@@ -25,6 +31,9 @@ export function GalleryImagesPanel({ programId, initialImages }: Props) {
   const [images, setImages] = useState<GalleryImageRow[]>(initialImages);
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
+  /** Seçilen dosyalar sırayla kırpılır; kuyruğun başı ekranda gösterilir. */
+  const [queue, setQueue] = useState<string[]>([]);
+  const [queueTotal, setQueueTotal] = useState(0);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null);
@@ -55,38 +64,60 @@ export function GalleryImagesPanel({ programId, initialImages }: Props) {
     }
   }
 
-  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     e.target.value = "";
+    // Dosyaları data URL'e çevirip kırpma kuyruğuna al.
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error("Dosya okunamadı."));
+            reader.readAsDataURL(file);
+          }),
+      ),
+    )
+      .then((srcs) => {
+        setQueue(srcs);
+        setQueueTotal(srcs.length);
+      })
+      .catch(() => showFlash(false, "Dosya okunamadı."));
+  }
+
+  /** Kırpılan görseli yükler, galeriye ekler ve kuyruktan bir sonrakine geçer. */
+  async function handleCropConfirm(blob: Blob) {
     setUploading(true);
     try {
-      const added: GalleryImageRow[] = [];
-      for (const file of files) {
-        const fd = new FormData();
-        fd.append("file", file);
-        const upload = await fetch("/api/v1/admin/upload", { method: "POST", body: fd });
-        const uploaded = await upload.json();
-        if (!uploaded.success) throw new Error(uploaded.message ?? "Yükleme başarısız.");
+      const fd = new FormData();
+      fd.append("file", new File([blob], "galeri.jpg", { type: "image/jpeg" }));
+      const upload = await fetch("/api/v1/admin/upload", { method: "POST", body: fd });
+      const uploaded = await upload.json();
+      if (!uploaded.success) throw new Error(uploaded.message ?? "Yükleme başarısız.");
 
-        // Yüklenen görsel hemen galeriye kaydedilir; ayrı kaydetme adımı yok,
-        // böylece frontend'de anında görünür.
-        const res = await fetch(`/api/v1/admin/programs/${programId}/gallery`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: uploaded.data.url, mediaId: uploaded.data.id }),
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message ?? "Galeriye eklenemedi.");
-        added.push(data.data as GalleryImageRow);
-      }
-      setImages((prev) => [...prev, ...added]);
-      showFlash(true, `${added.length} görsel eklendi.`);
+      const res = await fetch(`/api/v1/admin/programs/${programId}/gallery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: uploaded.data.url, mediaId: uploaded.data.id }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message ?? "Galeriye eklenemedi.");
+
+      setImages((prev) => [...prev, data.data as GalleryImageRow]);
+      setQueue((prev) => prev.slice(1));
+      showFlash(true, "Görsel eklendi.");
     } catch (err) {
       showFlash(false, err instanceof Error ? err.message : "Hata.");
     } finally {
       setUploading(false);
     }
+  }
+
+  function cancelQueue() {
+    setQueue([]);
+    setQueueTotal(0);
   }
 
   async function remove(image: GalleryImageRow) {
@@ -137,11 +168,23 @@ export function GalleryImagesPanel({ programId, initialImages }: Props) {
 
   return (
     <div className="border border-[var(--border)] bg-[var(--surface)] p-6">
+      {queue.length > 0 && (
+        <ImageCropModal
+          src={queue[0]}
+          aspect={GALLERY_ASPECT}
+          maxWidth={GALLERY_MAX_WIDTH}
+          busy={uploading}
+          progressLabel={queueTotal > 1 ? `${queueTotal - queue.length + 1} / ${queueTotal}` : undefined}
+          onCancel={cancelQueue}
+          onConfirm={handleCropConfirm}
+        />
+      )}
+
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-medium text-[var(--text-primary)]">Fotoğraf Slider&apos;ı</h2>
           <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-            Program detay sayfasında gösterilir · {images.length} görsel, {activeCount} aktif ·
+            3:4 kırpılır · {images.length} görsel, {activeCount} aktif ·
             sürükleyerek sıralayın
           </p>
         </div>
@@ -171,7 +214,7 @@ export function GalleryImagesPanel({ programId, initialImages }: Props) {
         >
           <span className="text-xs">Fotoğraf eklemek için tıklayın</span>
           <span className="text-[10px] text-[var(--text-disabled)]">
-            Birden fazla seçebilirsiniz — maks. 10 MB
+            Birden fazla seçebilirsiniz · her biri 3:4 kırpılır — maks. 10 MB
           </span>
         </button>
       ) : (

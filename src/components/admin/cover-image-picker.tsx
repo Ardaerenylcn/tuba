@@ -1,31 +1,8 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import Cropper from "react-easy-crop";
-import type { Area } from "react-easy-crop";
-
-async function getCroppedBlob(
-  imageSrc: string,
-  pixelCrop: Area,
-  outputType: "jpeg" | "png",
-): Promise<Blob> {
-  const img = new window.Image();
-  img.src = imageSrc;
-  await new Promise((res) => { img.onload = res; });
-
-  const canvas = document.createElement("canvas");
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
-  canvas.getContext("2d")!.drawImage(
-    img,
-    pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
-    0, 0, pixelCrop.width, pixelCrop.height,
-  );
-
-  const mime = outputType === "png" ? "image/png" : "image/jpeg";
-  return new Promise((res) => canvas.toBlob((b) => res(b!), mime, 0.92));
-}
+import { ImageCropModal } from "@/components/admin/image-crop-modal";
 
 interface Props {
   value: string | null;
@@ -60,13 +37,6 @@ export function CoverImagePicker({
   const [error, setError] = useState<string | null>(null);
 
   const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-
-  const onCropComplete = useCallback((_: Area, pixels: Area) => {
-    setCroppedAreaPixels(pixels);
-  }, []);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -77,12 +47,10 @@ export function CoverImagePicker({
     reader.readAsDataURL(file);
   }
 
-  async function handleConfirm() {
-    if (!cropSrc || !croppedAreaPixels) return;
+  async function handleConfirm(blob: Blob) {
     setUploading(true);
     setError(null);
     try {
-      const blob = await getCroppedBlob(cropSrc, croppedAreaPixels, outputType);
       const fd = new FormData();
       const ext = outputType === "png" ? "png" : "jpg";
       const mime = outputType === "png" ? "image/png" : "image/jpeg";
@@ -101,60 +69,21 @@ export function CoverImagePicker({
 
   function handleCancel() {
     setCropSrc(null);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
   }
 
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs font-medium tracking-[0.1em] uppercase text-[var(--text-muted)]">{label}</p>
 
-      {/* Kırpma modalı */}
       {cropSrc && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-black">
-          <div className="relative flex-1">
-            <Cropper
-              image={cropSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={aspect}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
-            />
-          </div>
-          <div className="flex items-center justify-between bg-black/90 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] uppercase tracking-widest text-white/50">Yakınlaştır</span>
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={0.05}
-                value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-32 accent-white"
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-4 py-2 text-xs text-white/60 hover:text-white"
-              >
-                İptal
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirm}
-                disabled={uploading}
-                className="bg-white px-5 py-2 text-xs font-medium text-black disabled:opacity-50"
-              >
-                {uploading ? "Yükleniyor..." : "Onayla"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ImageCropModal
+          src={cropSrc}
+          aspect={aspect}
+          outputType={outputType}
+          busy={uploading}
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+        />
       )}
 
       {previewUrl ? (
