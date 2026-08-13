@@ -10,6 +10,7 @@ export const ADMIN_NAV = [
     id: "katalog",
     label: "Katalog",
     items: [
+      { href: "/admin/takvim", label: "Takvim" },
       { href: "/admin/programlar", label: "Programlar" },
       { href: "/admin/turler", label: "Kategoriler" },
       { href: "/admin/oturumlar", label: "Oturumlar" },

@@ -22,6 +22,66 @@ async function checkAdmin() {
   return session;
 }
 
+/** Takvim detay modalı: oturum + katılımcı listesi tek istekte. */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await checkAdmin();
+  if (!auth) return forbidden();
+
+  const { id } = await params;
+
+  try {
+    const workshopSession = await db.workshopSession.findUnique({
+      where: { id },
+      include: {
+        program: {
+          select: { id: true, title: true, type: true, slug: true, basePrice: true, currency: true, shortDescription: true },
+        },
+        instructor: { select: { id: true, name: true } },
+        reservations: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            customerName: true,
+            customerEmail: true,
+            customerPhone: true,
+            participantCount: true,
+            status: true,
+            paymentStatus: true,
+            priceSnapshot: true,
+            notes: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+    if (!workshopSession) return notFound("Oturum bulunamadı.");
+
+    // Doluluk katılımcı sayısı toplamıdır, rezervasyon satırı değil.
+    const booked = workshopSession.reservations
+      .filter((r) => r.status === "pending" || r.status === "confirmed")
+      .reduce((a, r) => a + r.participantCount, 0);
+    const waitlisted = workshopSession.reservations
+      .filter((r) => r.status === "waitlisted")
+      .reduce((a, r) => a + r.participantCount, 0);
+
+    return ok({
+      ...workshopSession,
+      basePrice: Number(workshopSession.program.basePrice),
+      priceOverride: workshopSession.priceOverride ? Number(workshopSession.priceOverride) : null,
+      reservations: workshopSession.reservations.map((r) => ({
+        ...r,
+        priceSnapshot: Number(r.priceSnapshot),
+      })),
+      booked,
+      waitlisted,
+      available: Math.max(0, workshopSession.capacity - booked),
+    });
+  } catch (err) {
+    console.error("[GET /api/v1/admin/sessions/:id]", err);
+    return serverError();
+  }
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await checkAdmin();
   if (!auth) return forbidden();
