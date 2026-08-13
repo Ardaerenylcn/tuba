@@ -139,6 +139,28 @@ export function EventDetailModal({
     }
   }
 
+  /** Ödeme elle işaretlenir — tahsilat atölyede yapılıyor, entegrasyon yok. */
+  async function setPaymentStatus(r: Reservation, paymentStatus: string) {
+    setBusyId(r.id);
+    try {
+      const res = await fetch(`/api/v1/admin/reservations/${r.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentStatus }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message ?? "Güncellenemedi.");
+      setFlash(paymentStatus === "paid" ? "Ödeme alındı olarak işaretlendi." : "Ödeme durumu güncellendi.");
+      setReloadKey((k) => k + 1);
+      onChanged();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hata.");
+    } finally {
+      setBusyId(null);
+      setTimeout(() => setFlash(null), 3000);
+    }
+  }
+
   async function setReservationStatus(r: Reservation, status: string, confirmText?: string) {
     if (confirmText && !window.confirm(confirmText)) return;
     setBusyId(r.id);
@@ -281,6 +303,44 @@ export function EventDetailModal({
                         <span className="mr-1 text-[10px] text-[var(--text-disabled)]">
                           {new Date(r.createdAt).toLocaleDateString("tr-TR")}
                         </span>
+                        {r.status === "waitlisted" && (
+                          <button
+                            type="button"
+                            disabled={busyId === r.id}
+                            onClick={() =>
+                              setReservationStatus(
+                                r,
+                                "confirmed",
+                                detail && r.participantCount > detail.available
+                                  ? `Oturumda ${detail.available} kişilik yer var, bu kayıt ${r.participantCount} kişilik. Yine de denenecek mi?`
+                                  : undefined,
+                              )
+                            }
+                            className="h-6 border border-sky-300 px-2 text-[10px] text-sky-700 transition-colors hover:bg-sky-50 disabled:opacity-40"
+                          >
+                            {busyId === r.id ? "…" : "Listeden al"}
+                          </button>
+                        )}
+                        {r.paymentStatus !== "paid" && (
+                          <button
+                            type="button"
+                            disabled={busyId === r.id}
+                            onClick={() => setPaymentStatus(r, "paid")}
+                            className="h-6 border border-emerald-300 px-2 text-[10px] text-emerald-700 transition-colors hover:bg-emerald-50 disabled:opacity-40"
+                          >
+                            {busyId === r.id ? "…" : "Ödendi"}
+                          </button>
+                        )}
+                        {r.paymentStatus === "paid" && (
+                          <button
+                            type="button"
+                            disabled={busyId === r.id}
+                            onClick={() => setPaymentStatus(r, "pending")}
+                            className="h-6 border border-[var(--border)] px-2 text-[10px] text-[var(--text-muted)] transition-colors hover:border-[var(--text-primary)] disabled:opacity-40"
+                          >
+                            Ödemeyi geri al
+                          </button>
+                        )}
                         {RESERVATION_ACTIONS.filter((a) => a.status !== r.status).map((a) => (
                           <button
                             key={a.status}
