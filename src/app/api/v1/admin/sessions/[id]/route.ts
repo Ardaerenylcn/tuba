@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { ok, badRequest, forbidden, notFound, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
 import { findSessionConflicts, conflictMessage } from "@/lib/session-conflicts";
+import { validateInstructor } from "@/lib/instructor";
 
 const patchSchema = z.object({
   startAt: z.string().datetime().optional(),
@@ -13,6 +14,7 @@ const patchSchema = z.object({
   locationName: z.string().max(200).optional().nullable(),
   locationAddress: z.string().max(500).optional().nullable(),
   notes: z.string().max(1000).optional().nullable(),
+  instructorId: z.string().optional().nullable(),
 });
 
 async function checkAdmin() {
@@ -98,7 +100,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const existing = await db.workshopSession.findUnique({ where: { id } });
     if (!existing) return notFound("Oturum bulunamadı.");
 
+    const instructorCheck = await validateInstructor(parsed.data.instructorId);
+    if (!instructorCheck.ok) return badRequest(instructorCheck.message);
+
     const data: Record<string, unknown> = { ...parsed.data };
+    // Boş seçim "eğitmen yok" demektir; boş metin yerine null yazılır.
+    if (parsed.data.instructorId !== undefined) data.instructorId = parsed.data.instructorId || null;
     if (parsed.data.startAt) data.startAt = new Date(parsed.data.startAt);
     if (parsed.data.endAt) data.endAt = new Date(parsed.data.endAt);
 

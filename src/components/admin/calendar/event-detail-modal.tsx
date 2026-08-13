@@ -72,10 +72,13 @@ export function EventDetailModal({
   sessionId,
   onClose,
   onChanged,
+  onEdit,
 }: {
   sessionId: string;
   onClose: () => void;
   onChanged: () => void;
+  /** Düzenleme formunu açar; detay verisi forma önyükleme olarak taşınır. */
+  onEdit: (detail: SessionDetail) => void;
 }) {
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,6 +115,29 @@ export function EventDetailModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  async function removeSession() {
+    if (!detail) return;
+    const active = detail.booked;
+    const msg = active > 0
+      ? `Bu oturumda ${active} kişilik aktif rezervasyon var. Oturum silinemez — önce rezervasyonları iptal etmeniz gerekir.`
+      : "Bu oturum kalıcı olarak silinecek. Emin misiniz?";
+    if (active > 0) { window.alert(msg); return; }
+    if (!window.confirm(msg)) return;
+
+    setBusyId("__session__");
+    try {
+      const res = await fetch(`/api/v1/admin/sessions/${sessionId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message ?? "Silinemedi.");
+      onChanged();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hata.");
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function setReservationStatus(r: Reservation, status: string, confirmText?: string) {
     if (confirmText && !window.confirm(confirmText)) return;
@@ -289,12 +315,29 @@ export function EventDetailModal({
             >
               Sitedeki sayfası →
             </a>
-            <a
-              href={`/admin/programlar/${detail.program.id}`}
-              className="text-[11px] text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text-primary)]"
-            >
-              Programı düzenle →
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={`/admin/programlar/${detail.program.id}`}
+                className="text-[11px] text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text-primary)]"
+              >
+                Programı düzenle →
+              </a>
+              <button
+                type="button"
+                onClick={() => onEdit(detail)}
+                className="h-7 border border-[var(--border)] px-2.5 text-[11px] text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
+              >
+                Düzenle
+              </button>
+              <button
+                type="button"
+                onClick={removeSession}
+                disabled={busyId === "__session__"}
+                className="h-7 border border-red-200 px-2.5 text-[11px] text-red-600 transition-colors hover:bg-red-50 disabled:opacity-40"
+              >
+                {busyId === "__session__" ? "…" : "Sil"}
+              </button>
+            </div>
           </div>
         )}
       </div>

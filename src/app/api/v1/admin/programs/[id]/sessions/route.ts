@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { ok, created, badRequest, forbidden, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
 import { findSessionConflicts, conflictMessage } from "@/lib/session-conflicts";
+import { validateInstructor } from "@/lib/instructor";
 
 const createSchema = z.object({
   startAt: z.string().datetime(),
@@ -13,6 +14,7 @@ const createSchema = z.object({
   locationName: z.string().max(200).optional().nullable(),
   locationAddress: z.string().max(500).optional().nullable(),
   notes: z.string().max(1000).optional().nullable(),
+  instructorId: z.string().optional().nullable(),
 }).refine((d) => new Date(d.endAt) > new Date(d.startAt), {
   message: "Bitiş saati başlangıçtan sonra olmalı.",
   path: ["endAt"],
@@ -67,6 +69,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const program = await db.program.findUnique({ where: { id } });
     if (!program) return badRequest("Program bulunamadı.");
 
+    const instructorCheck = await validateInstructor(parsed.data.instructorId);
+    if (!instructorCheck.ok) return badRequest(instructorCheck.message);
+
     const workshopSession = await db.workshopSession.create({
       data: {
         programId: id,
@@ -78,6 +83,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         locationName: parsed.data.locationName ?? null,
         locationAddress: parsed.data.locationAddress ?? null,
         notes: parsed.data.notes ?? null,
+        instructorId: parsed.data.instructorId || null,
       },
       include: {
         _count: {

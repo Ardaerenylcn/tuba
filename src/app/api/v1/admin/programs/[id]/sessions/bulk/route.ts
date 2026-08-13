@@ -2,6 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { ok, badRequest, forbidden, serverError, handleZodError } from "@/lib/api";
 import { getSession } from "@/lib/auth-server";
+import { validateInstructor } from "@/lib/instructor";
 
 const bulkSchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -13,6 +14,7 @@ const bulkSchema = z.object({
   status: z.enum(["draft", "published"]).default("published"),
   priceOverride: z.number().min(0).optional().nullable(),
   locationName: z.string().max(200).optional().nullable(),
+  instructorId: z.string().optional().nullable(),
 }).refine((d) => d.endDate >= d.startDate, {
   message: "Bitiş tarihi başlangıçtan önce olamaz.",
   path: ["endDate"],
@@ -50,10 +52,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const program = await db.program.findUnique({ where: { id } });
   if (!program) return badRequest("Program bulunamadı.");
 
-  const { startDate, endDate, daysOfWeek, startTime, endTime, capacity, status, priceOverride, locationName } = parsed.data;
+  const { startDate, endDate, daysOfWeek, startTime, endTime, capacity, status, priceOverride, locationName, instructorId } = parsed.data;
+
+  const instructorCheck = await validateInstructor(instructorId);
+  if (!instructorCheck.ok) return badRequest(instructorCheck.message);
 
   const daySet = new Set(daysOfWeek);
-  const sessions: { programId: string; startAt: Date; endAt: Date; capacity: number; status: string; priceOverride: unknown; locationName: string | null | undefined }[] = [];
+  const sessions: { programId: string; startAt: Date; endAt: Date; capacity: number; status: string; priceOverride: unknown; locationName: string | null | undefined; instructorId: string | null }[] = [];
 
   const cursor = new Date(`${startDate}T00:00:00Z`);
   const last = new Date(`${endDate}T00:00:00Z`);
@@ -76,6 +81,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         status,
         priceOverride: priceOverride ?? null,
         locationName: locationName ?? null,
+        instructorId: instructorId || null,
       });
     }
 

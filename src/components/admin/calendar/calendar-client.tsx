@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { CalendarEvent, CalendarViewMode } from "@/lib/calendar";
 import { DayView, ListView, MonthView, WeekView } from "./calendar-views";
 import { EventDetailModal } from "./event-detail-modal";
+import { EventFormModal, type EventFormInitial, type ProgramOption } from "./event-form-modal";
 import { SESSION_STATUS_LABELS } from "./status-labels";
 
 const VIEW_STORAGE_KEY = "admin-calendar-view";
@@ -49,13 +50,17 @@ export function CalendarClient({
   events,
   query,
   options,
+  programs,
 }: {
   events: CalendarEvent[];
   query: CalendarQuery;
   options: FilterOptions;
+  programs: ProgramOption[];
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [formInitial, setFormInitial] = useState<EventFormInitial | undefined>(undefined);
   const [dragBusy, setDragBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -145,6 +150,38 @@ export function CalendarClient({
     }
   }
 
+  function openNew() {
+    setFormInitial(undefined);
+    setFormOpen(true);
+  }
+
+  /** Detaydan düzenlemeye geçiş — form alanları detay verisinden doldurulur. */
+  function openEditFromDetail(d: {
+    id: string; startAt: string; endAt: string; capacity: number; status: string;
+    locationName: string | null; locationAddress: string | null; notes: string | null;
+    priceOverride: number | null; instructor: { id: string } | null; program: { id: string };
+  }) {
+    const start = new Date(d.startAt);
+    const end = new Date(d.endAt);
+    const hhmm = (x: Date) => `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
+    setFormInitial({
+      sessionId: d.id,
+      programId: d.program.id,
+      date: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`,
+      startTime: hhmm(start),
+      endTime: hhmm(end),
+      capacity: d.capacity,
+      instructorId: d.instructor?.id ?? "",
+      locationName: d.locationName ?? "",
+      locationAddress: d.locationAddress ?? "",
+      priceOverride: d.priceOverride !== null ? String(d.priceOverride) : "",
+      status: d.status,
+      notes: d.notes ?? "",
+    });
+    setOpenId(null);
+    setFormOpen(true);
+  }
+
   const hasFilters = !!(query.type || query.instructorId || query.location || query.status || query.occupancy || query.search);
 
   const title =
@@ -172,6 +209,14 @@ export function CalendarClient({
           <span className="text-xs text-[var(--text-muted)]">({events.length} oturum)</span>
         </div>
 
+        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={openNew}
+          className="h-8 bg-[var(--text-primary)] px-3 text-xs font-medium text-[var(--surface)] transition-opacity hover:opacity-90"
+        >
+          + Yeni Oturum
+        </button>
         <div className="flex items-center gap-1 border border-[var(--border)]">
           {VIEWS.map((v) => (
             <button
@@ -188,6 +233,7 @@ export function CalendarClient({
               {v.label}
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -262,6 +308,23 @@ export function CalendarClient({
           sessionId={openId}
           onClose={() => setOpenId(null)}
           onChanged={() => router.refresh()}
+          onEdit={openEditFromDetail}
+        />
+      )}
+
+      {formOpen && (
+        <EventFormModal
+          programs={programs}
+          instructors={options.instructors}
+          initial={formInitial}
+          defaultDate={query.date}
+          onClose={() => setFormOpen(false)}
+          onSaved={(message) => {
+            setFormOpen(false);
+            setToast(message);
+            router.refresh();
+            setTimeout(() => setToast(null), 5000);
+          }}
         />
       )}
     </div>

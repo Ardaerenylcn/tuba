@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { db } from "@/lib/db";
 import { getCalendarEvents, getCalendarFilterOptions, getCalendarStats, type CalendarViewMode } from "@/lib/calendar";
 import { CalendarStatsRow } from "@/components/admin/calendar/calendar-stats";
 import { CalendarClient, type CalendarQuery } from "@/components/admin/calendar/calendar-client";
@@ -65,11 +66,19 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
 
   const { from, to } = rangeFor(view, cursor);
 
-  const [events, stats, options] = await Promise.all([
+  const [events, stats, options, programRows] = await Promise.all([
     getCalendarEvents(from, to, filters),
     getCalendarStats(),
     getCalendarFilterOptions(),
+    // Form program seçtirir; ad/açıklama/görsel programa aittir, takvim kopyalamaz.
+    db.program.findMany({
+      where: { status: { not: "archived" } },
+      orderBy: [{ type: "asc" }, { title: "asc" }],
+      select: { id: true, title: true, type: true, defaultCapacity: true, durationMinutes: true, basePrice: true },
+    }),
   ]);
+
+  const programs = programRows.map((p) => ({ ...p, basePrice: Number(p.basePrice) }));
 
   const query: CalendarQuery = {
     view,
@@ -91,7 +100,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
             href="/admin/programlar"
             className="inline-flex h-9 items-center border border-[var(--border)] px-3 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]"
           >
-            + Yeni Oturum
+            Programlar
           </Link>
           <Link
             href="/admin/rezervasyonlar"
@@ -104,7 +113,7 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
 
       <CalendarStatsRow stats={stats} />
 
-      <CalendarClient events={events} query={query} options={options} />
+      <CalendarClient events={events} query={query} options={options} programs={programs} />
     </div>
   );
 }
