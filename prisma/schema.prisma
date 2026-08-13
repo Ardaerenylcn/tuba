@@ -126,6 +126,7 @@ model Program {
   category      ProgramCategory?     @relation(fields: [categoryId], references: [id])
   coverImage    Media?               @relation("ProgramCover", fields: [coverImageId], references: [id])
   requirements  ProgramRequirement[]
+  galleryImages ProgramGalleryImage[]
   faqs          ProgramFaq[]
   sessions      WorkshopSession[]
   reviews       Review[]
@@ -146,6 +147,26 @@ model Favorite {
   @@unique([userId, programId])
   @@index([userId])
   @@map("favorites")
+}
+
+/// Program detay sayfasındaki fotoğraf slider'ı.
+/// `Program.galleryImageIds` eski (salt URL dizisi) alandır; sıralama ve
+/// aktif/pasif durumunu ifade edemediği için bu tabloya taşındı. Geri dönüş
+/// gerekirse veri kaybı olmasın diye o kolon silinmedi.
+model ProgramGalleryImage {
+  id        String   @id @default(cuid())
+  programId String
+  mediaId   String?
+  url       String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  media     Media?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([programId, sortOrder])
+  @@map("program_gallery_images")
 }
 
 model ProgramRequirement {
@@ -362,6 +383,7 @@ model Media {
   createdAt   DateTime @default(now())
 
   programCovers Program[]  @relation("ProgramCover")
+  galleryUses   ProgramGalleryImage[]
   blogCovers    BlogPost[] @relation("BlogCover")
 
   @@map("media")

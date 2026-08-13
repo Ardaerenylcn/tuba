@@ -17,6 +17,11 @@ async function getProgram(slug: string) {
     where: { slug, status: "published" },
     include: {
       coverImage: { select: { url: true } },
+      galleryImages: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+        select: { url: true, media: { select: { altText: true } } },
+      },
       sessions: {
         where: {
           status: "published",
@@ -170,7 +175,9 @@ export default async function WorkshopDetailPage({ params }: Props) {
           />
 
           {/* Gallery */}
-          <ProgramGallery urls={program.galleryImageIds} />
+          <ProgramGallery
+            images={program.galleryImages.map((g) => ({ url: g.url, alt: g.media?.altText }))}
+          />
 
           {/* Requirements */}
           {program.requirements.length > 0 && (

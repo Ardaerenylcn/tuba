@@ -20,7 +20,6 @@ const patchSchema = z.object({
   seoDescription: z.string().max(500).optional().nullable(),
   coverImageId: z.string().optional().nullable(),
   coverImagePosition: z.string().optional().nullable(),
-  galleryImageUrls: z.array(z.string()).optional(),
 });
 
 async function checkAdmin() {
@@ -70,7 +69,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       if (slugTaken) return badRequest("Bu slug zaten kullanımda.");
     }
 
-    const { coverImageId, galleryImageUrls, ...rest } = parsed.data;
+    const { coverImageId, ...rest } = parsed.data;
     const program = await db.program.update({
       where: { id },
       data: {
@@ -78,7 +77,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         ...(coverImageId !== undefined
           ? { coverImage: coverImageId ? { connect: { id: coverImageId } } : { disconnect: true } }
           : {}),
-        ...(galleryImageUrls !== undefined ? { galleryImageIds: galleryImageUrls } : {}),
       },
     });
 

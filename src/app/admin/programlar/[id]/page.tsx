@@ -24,6 +24,10 @@ export default async function EditProgramPage({ params }: { params: Promise<{ id
     include: {
       _count: { select: { sessions: true } },
       coverImage: { select: { url: true } },
+      galleryImages: {
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, url: true, sortOrder: true, isActive: true },
+      },
     },
   });
 
@@ -79,7 +83,7 @@ export default async function EditProgramPage({ params }: { params: Promise<{ id
         basePrice={Number(program.basePrice)}
       />
 
-      <GalleryImagesPanel programId={program.id} initialUrls={program.galleryImageIds} />
+      <GalleryImagesPanel programId={program.id} initialImages={program.galleryImages} />
       <FaqsPanel programId={program.id} />
     </div>
   );

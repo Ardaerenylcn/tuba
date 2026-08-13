@@ -34,6 +34,11 @@ async function getProgram(slug: string, type: string) {
     where: { slug, status: "published", type },
     include: {
       coverImage: { select: { url: true } },
+      galleryImages: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+        select: { url: true, media: { select: { altText: true } } },
+      },
       sessions: {
         where: { status: "published", startAt: { gte: new Date() } },
         orderBy: { startAt: "asc" },
@@ -207,7 +212,9 @@ export default async function DynamicProgramDetailPage({ params }: Props) {
 
           <RichTextRenderer content={program.description} className="mb-12" />
 
-          <ProgramGallery urls={program.galleryImageIds} />
+          <ProgramGallery
+            images={program.galleryImages.map((g) => ({ url: g.url, alt: g.media?.altText }))}
+          />
 
           {program.requirements.length > 0 && (
             <div className="mb-12">
