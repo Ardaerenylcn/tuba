@@ -218,6 +218,9 @@ export function ImageSlider({
         )}
       </div>
 
+      {/* Butonlar z-10: fotoğraf sarmalayıcısı DOM'da onlardan sonra geldiği
+          ve ikisinin de z-index'i olmadığı için fotoğraf okların üstüne
+          biniyordu (dar ekranda ok tıklanamaz hale geliyordu). */}
       {lightbox && zoomed !== null && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
@@ -230,7 +233,7 @@ export function ImageSlider({
             type="button"
             onClick={() => setZoomed(null)}
             aria-label="Kapat"
-            className="absolute right-4 top-4 p-2 text-white/60 transition-colors hover:text-white"
+            className="absolute right-4 top-4 z-10 p-2 text-white/60 transition-colors hover:text-white"
           >
             ✕
           </button>
@@ -240,7 +243,7 @@ export function ImageSlider({
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setZoomed((z) => (z === null ? null : (z - 1 + count) % count)); }}
                 aria-label="Önceki"
-                className="absolute left-2 top-1/2 -translate-y-1/2 p-4 text-2xl text-white/60 transition-colors hover:text-white sm:left-6"
+                className="absolute left-2 top-1/2 z-10 -translate-y-1/2 p-4 text-2xl text-white/60 transition-colors hover:text-white sm:left-6"
               >
                 ‹
               </button>
@@ -248,7 +251,7 @@ export function ImageSlider({
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setZoomed((z) => (z === null ? null : (z + 1) % count)); }}
                 aria-label="Sonraki"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-4 text-2xl text-white/60 transition-colors hover:text-white sm:right-6"
+                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 p-4 text-2xl text-white/60 transition-colors hover:text-white sm:right-6"
               >
                 ›
               </button>
@@ -263,7 +266,7 @@ export function ImageSlider({
               className="max-h-[85vh] w-auto object-contain"
             />
           </div>
-          <span className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs tabular-nums text-white/40">
+          <span className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 text-xs tabular-nums text-white/40">
             {zoomed + 1} / {count}
           </span>
         </div>
